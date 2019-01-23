@@ -3,7 +3,6 @@ from .forms import ConnexionForm
 from django.forms import modelformset_factory
 from django.contrib.auth import authenticate,login,logout
 from tkinter.filedialog import askopenfilename
-from django.db.utils import DatabaseError
 from django.contrib import messages
 from django import forms
 from .models import *
@@ -92,25 +91,24 @@ def import_data(request):
 def test_form(request):
     feuilles= Feuille_calcul.objects.all()
     feuille= feuilles[0]
+    echantillons= Echantillon.objects.all()
+    enchantillon=echantillons[0]
     choix = "siccite"
     type_analyse = Type_analyse.objects.filter(nom=choix)
     param_interne_analyse = type_analyse[0].parametre_interne.all().values_list('nom', flat=True)
     array_num=['E99945601','E99945602','E99945603','E99945604','E99945605']
     analyseFormset = modelformset_factory(Analyse, fields=param_interne_analyse, max_num=4,min_num=4)
-    analyseFormset=analyseFormset(initial=[{'nEchantillon': x } for x in array_num])
-
-    if request.method=="POST":
-            for form in analyseFormset:
-                    try:
-                        analyse=form.save(commit=False)
-                        echantillon=Echantillon.objects.filter(numero='E99945601')
-                        analyse.echantillon=echantillon[0]
-                        analyse.feuille_calcul=feuille
-                        analyse.save()
-                    except DatabaseError:
-                            messages.error(request, "Database error. Please try again")
-
-            analyseFormset.save()
-
+    # analyseFormset=analyseFormset(initial=[{'nEchantillon':x} for x in array_num])
+    if request.method == 'POST':
+        formset = analyseFormset(request.POST, request.FILES)
+        if formset.is_valid():
+            for form in formset:
+                numero = form.cleaned_data.get('nEchantillon')
+                if numero:
+                    Analyse(nEchantillon=numero,echantillon=enchantillon,feuille_calcul=feuille).save()
+        else:
+            messages.error(request,"Formset not Valid")
+    else :
+        formset = analyseFormset()
 
     return render(request, 'myapp/test.html', {'formset': analyseFormset})
