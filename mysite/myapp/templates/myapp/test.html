@@ -1,17 +1,4 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <title>Test</title>
-</head>
-<body>
-<form method="post" action="">
-   {{ formset.management_form }}
-    {% for form in formset %}
-        {% csrf_token %}
-        {{ form }} <br/>
-    {% endfor %}
-    <input type="submit" value="Valider Analyses">
-</form>
-</body>
+{{f}}
 </html>

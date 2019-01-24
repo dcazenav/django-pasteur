@@ -23,7 +23,7 @@ class Parametre_interne_analyse(models.Model):
         return self.nom
 
 class Type_analyse(models.Model):
-    nom = models.CharField(max_length=100,default="NULL")
+    nom = models.CharField(max_length=100)
     parametre_interne=models.ManyToManyField(Parametre_interne_analyse)
     parametre_externe = models.ManyToManyField(Parametre_externe_analyse)
     def __str__(self):
@@ -47,8 +47,7 @@ class Analyse(models.Model):
     ma = models.CharField(max_length=60)
     mb = models.CharField(max_length=60)
     mc = models.CharField(max_length=60)
-    def __str__(self):
-        return self
+
 
 
 
