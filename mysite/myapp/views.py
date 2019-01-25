@@ -30,15 +30,15 @@ def deconnexion(request):
     return redirect(connexion)
 
 def import_data(request):
-
+    profil=Profil.objects.filter(user=request.user)
     if request.method == 'POST':
-        paillasse = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
+        paillasse=Feuille_paillasse(profil=profil[0])
+        paillasse.save()
+        paillasse_data = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
         dico1 = []
         dico2 = {}
-        liste_echantillon = []
         container_type = []
-        nb_echantillon = 0
-        for line in paillasse:
+        for line in paillasse_data:
             ls = line.split(';')
             tmp = []
             ls[5]=ls[5].lower()
@@ -55,6 +55,7 @@ def import_data(request):
 
         request.session['type_analyses'] = container_type
         request.session['type_analyses_echantillon']= dico1
+        request.session['paillasse_id'] = paillasse.id
 
         return redirect(choix_analyse)
 
@@ -66,17 +67,24 @@ def import_data(request):
     return render(request, 'myapp/import_data.html',{'form': form} )
 
 def choix_analyse(request):
-    if 'type_analyses' in request.session:
+    if 'type_analyses' in request.session and 'paillasse_id' in request.session :
         les_types = request.session['type_analyses']
+        paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
         if request.method == 'POST':
             choix=request.POST['choix']
             type_analyse = Type_analyse.objects.filter(nom=choix)
             les_parametres=[]
             param_interne_analyse = type_analyse[0].parametre_interne.all().values_list('nom', flat=True)
+
+            #Création feuille de calcul
+            feuille_calcul=Feuille_calcul(feuille_paillasse=paillasse[0],type_analyse=type_analyse[0])
+            feuille_calcul.save()
+
             for elmt in param_interne_analyse:
                 les_parametres.append(elmt)
             request.session['les_parametres'] = les_parametres
             request.session['choix'] = choix
+            request.session['feuille_calcul_id'] = feuille_calcul.id
 
 
             return redirect(feuille_calcul_data)
@@ -91,9 +99,13 @@ def feuille_calcul_data(request):
     type_analyses_echantillon = request.session['type_analyses_echantillon']
     param_interne_analyse= request.session['les_parametres']
     choix= request.session['choix']
+    feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
+
     for nEchantillon in type_analyses_echantillon:
         if choix in nEchantillon[1]:
             num_echantillon.append(nEchantillon[0])
+            #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
+            Echantillon.objects.get_or_create(numero=nEchantillon[0])
             nb_echantillon+=1
     analyseFormset = modelformset_factory(Analyse, fields=param_interne_analyse, max_num=nb_echantillon, min_num=nb_echantillon)
     if request.method == 'POST':
@@ -103,7 +115,7 @@ def feuille_calcul_data(request):
                 numero = form.cleaned_data.get('nEchantillon')
                 if numero:
                     echantillon= Echantillon.objects.filter(numero=numero)
-                    Analyse(nEchantillon=numero, echantillon=echantillon, feuille_calcul=feuille).save()
+                    Analyse(nEchantillon=numero, echantillon=echantillon[0], feuille_calcul=feuille_calcul[0]).save()
         else:
             messages.error(request, "Formset not Valid")
     else:
