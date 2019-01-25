@@ -1,20 +1,18 @@
 {% extends 'myapp/base.html' %}
+{% load crispy_forms_tags %}
 {% block content %}
     <h1> Entrer vos données</h1>
 
-<div class="buttonHolder">
    <form method="post" action="">
        {{ formset.management_form }}
         {% for form in formset %}
-            {% csrf_token %}
-            {{ form }} <br/>
+        {% csrf_token %}
+        {{ form }}
         {% endfor %}
         <input type="submit" value="Valider Analyses">
     </form>
-</div>
 
 
-<style>
-.buttonHolder{ text-align: center; margin-top: 20%; }
-</style>
+
+
 {% endblock %}
