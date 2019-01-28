@@ -47,6 +47,7 @@ class Analyse(models.Model):
     ma = models.CharField(max_length=60)
     mb = models.CharField(max_length=60)
     mc = models.CharField(max_length=60)
+    resultat = models.CharField(max_length=60)
 
 
 

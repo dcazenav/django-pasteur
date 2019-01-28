@@ -2,7 +2,6 @@ from django.shortcuts import render,redirect,reverse
 from .forms import ConnexionForm,ImportForm
 from django.forms import modelformset_factory
 from django.contrib.auth import authenticate,login,logout
-from tkinter.filedialog import askopenfilename
 from django.contrib import messages
 from django import forms
 from .models import *
@@ -96,30 +95,40 @@ def choix_analyse(request):
 def feuille_calcul_data(request):
     num_echantillon=[]
     nb_echantillon=0
-    type_analyses_echantillon = request.session['type_analyses_echantillon']
-    param_interne_analyse= request.session['les_parametres']
-    choix= request.session['choix']
-    feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
+    if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
+        type_analyses_echantillon = request.session['type_analyses_echantillon']
+        param_interne_analyse= request.session['les_parametres']
+        choix= request.session['choix']
+        feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
 
-    for nEchantillon in type_analyses_echantillon:
-        if choix in nEchantillon[1]:
-            num_echantillon.append(nEchantillon[0])
-            #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
-            Echantillon.objects.get_or_create(numero=nEchantillon[0])
-            nb_echantillon+=1
-    analyseFormset = modelformset_factory(Analyse, fields=param_interne_analyse, max_num=nb_echantillon, min_num=nb_echantillon)
-    if request.method == 'POST':
+        for nEchantillon in type_analyses_echantillon:
+            if choix in nEchantillon[1]:
+                num_echantillon.append(nEchantillon[0])
+                #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
+                Echantillon.objects.get_or_create(numero=nEchantillon[0])
+                nb_echantillon+=1
+        analyseFormset = modelformset_factory(Analyse, fields=param_interne_analyse, max_num=nb_echantillon, min_num=nb_echantillon)
         formset = analyseFormset(request.POST, request.FILES)
-        if formset.is_valid():
-            for form in formset:
-                numero = form.cleaned_data.get('nEchantillon')
-                if numero:
-                    echantillon= Echantillon.objects.filter(numero=numero)
-                    Analyse(nEchantillon=numero, echantillon=echantillon[0], feuille_calcul=feuille_calcul[0]).save()
-        else:
-            messages.error(request, "Formset not Valid")
-    else:
-        formset = analyseFormset()
+        #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
+        analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
+        if request.method == 'POST':
+            if formset.is_valid():
+                for form in formset:
+                    numero = form.cleaned_data.get('nEchantillon')
+                    analyse=form.save(commit=False)
+                    if numero:
+                        echantillon= Echantillon.objects.filter(numero=numero)
+                        analyse.echantillon= echantillon[0]
+                        analyse.feuille_calcul= feuille_calcul[0]
+                        analyse.save()
+
+                return redirect(connexion)
+
+            else:
+                messages.error(request, "Formset not Valid")
+
+
+
 
     return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset})
 

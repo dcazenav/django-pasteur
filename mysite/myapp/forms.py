@@ -1,5 +1,7 @@
 from django import forms
 from .models import *
+from django.forms.models import BaseModelFormSet
+
 
 
 #class ProfilForm(forms.ModelForm) :
@@ -9,6 +11,8 @@ class ConnexionForm(forms.Form) :
 
 class ImportForm(forms.Form):
     file = forms.FileField()
+
+
 
 
 
