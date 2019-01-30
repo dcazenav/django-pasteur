@@ -107,25 +107,31 @@ def feuille_calcul_data(request):
                 #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
                 Echantillon.objects.get_or_create(numero=nEchantillon[0])
                 nb_echantillon+=1
-        analyseFormset = modelformset_factory(Analyse, fields=param_interne_analyse, max_num=nb_echantillon, min_num=nb_echantillon)
+        analyseFormset = modelformset_factory(Analyse,
+                                              fields=param_interne_analyse,
+                                              max_num=nb_echantillon,
+                                              min_num=nb_echantillon,
+                                              widgets={'nEchantillon': forms.TextInput(attrs={'readonly': True})}
+                                              )
         formset = analyseFormset(request.POST, request.FILES)
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
         analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
         if request.method == 'POST':
-            if formset.is_valid():
-                for form in formset:
-                    numero = form.cleaned_data.get('nEchantillon')
-                    analyse=form.save(commit=False)
-                    if numero:
-                        echantillon= Echantillon.objects.filter(numero=numero)
-                        analyse.echantillon= echantillon[0]
-                        analyse.feuille_calcul= feuille_calcul[0]
-                        analyse.save()
+            #if 'valider' in request.POST: #différencier plusieurs submit
+                if formset.is_valid():
+                    for form in formset:
+                        numero = form.cleaned_data.get('nEchantillon')
+                        analyse=form.save(commit=False)
+                        if numero:
+                            echantillon= Echantillon.objects.filter(numero=numero)
+                            analyse.echantillon= echantillon[0]
+                            analyse.feuille_calcul= feuille_calcul[0]
+                            analyse.save()
 
-                return redirect(connexion)
+                    return redirect(connexion)
 
-            else:
-                messages.error(request, "Formset not Valid")
+                else:
+                    messages.error(request, "Formset not Valid")
 
 
 

@@ -31,10 +31,42 @@
           </tr>
         {% endfor %}
         </table>
-        <input type="submit" value="Valider Analyses">
+        <input name="valider" type="submit" value="Valider Analyses">
+        <button onclick= myFunction()    type="button">Générer résultats</button>
     </form>
 
 
 
 
+{% endblock %}
+
+{%block javascripts %}
+{{ block.super }}
+<script>
+function myFunction()
+{
+    var nom1;
+    var nom2;
+    var nom3;
+    var val1;
+    var val2;
+    var val3;
+    var tmp  = "id_form-" ;
+    var compteur;
+    for (compteur = 0; compteur < 7; compteur++)
+    {
+        nom1 = "-m1";
+        nom2 ="-mb";
+        nom3 = "-resultat";
+        nom1=tmp+compteur+nom1;
+        nom2=tmp+compteur+nom2;
+        nom3=tmp+compteur+nom3;
+        val1=parseFloat((document.getElementById(nom1).value).replace(",", "."));
+        val2=parseFloat((document.getElementById(nom2).value).replace(",", "."));
+        val3= val1+val2;
+        document.getElementById(nom3).value = val3;
+    }
+}
+
+</script>
 {% endblock %}
