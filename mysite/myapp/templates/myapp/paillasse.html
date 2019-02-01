@@ -1,0 +1,18 @@
+{% extends 'myapp/base.html' %}
+{% load crispy_forms_tags %}
+{% block content %}
+    <h1> Rentrer les informations de votre feuille de paillasse </h1>
+
+<div class="buttonHolder">
+    <form action="" method="post">
+        {% csrf_token %}
+                {{form | crispy}}
+        <input type="submit" name="valider" class="btn btn-success "/>
+    </form>
+</div>
+
+
+<style>
+.buttonHolder{ text-align: center; margin-top: 20%; }
+</style>
+{% endblock %}

@@ -33,6 +33,7 @@
         </table>
         <input name="valider" type="submit" value="Valider Analyses">
         <button onclick= myFunction()    type="button">Générer résultats</button>
+
     </form>
 
 
@@ -45,27 +46,35 @@
 <script>
 function myFunction()
 {
-    var nom1;
-    var nom2;
-    var nom3;
-    var val1;
-    var val2;
-    var val3;
-    var tmp  = "id_form-" ;
-    var compteur;
-    for (compteur = 0; compteur < 7; compteur++)
+    var nb_echantillon={{nb_echantillon}};
+    // l'option safe permet de retourner les valeurs dans le tableau parametreInterne
+    var parametreInterne= {{parametre_interne|safe}};
+    //on retire le parametre nEchantillon car il n'est pas utile pour les opération à venir
+    parametreInterne=parametreInterne.slice(1);
+    var nb_param=  parametreInterne.length;
+    data_form=[];
+    for(var i=0;i<nb_echantillon;i++)
     {
-        nom1 = "-m1";
-        nom2 ="-mb";
-        nom3 = "-resultat";
-        nom1=tmp+compteur+nom1;
-        nom2=tmp+compteur+nom2;
-        nom3=tmp+compteur+nom3;
-        val1=parseFloat((document.getElementById(nom1).value).replace(",", "."));
-        val2=parseFloat((document.getElementById(nom2).value).replace(",", "."));
-        val3= val1+val2;
-        document.getElementById(nom3).value = val3;
+        data_form[i]=[];
+        for(var j=0; j< nb_param ; j++)
+        {
+            var nom="id_form-"+i+"-"+parametreInterne[j];
+            data_form[i][j]=nom;
+
+        }
     }
+    for(var i=0;i<nb_echantillon;i++)
+    {
+         v0=parseFloat(document.getElementById(data_form[i][0]).value);
+         v1=parseFloat(document.getElementById(data_form[i][1]).value);
+         v2=parseFloat(document.getElementById(data_form[i][2]).value);
+         facteur=parseFloat(document.getElementById(data_form[i][3]).value);
+
+        document.getElementById(data_form[i][4]).value = ((v1-v0)*16/v2)*facteur;
+
+    }
+
+
 }
 
 </script>

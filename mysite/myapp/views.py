@@ -1,10 +1,13 @@
-from django.shortcuts import render,redirect,reverse
-from .forms import ConnexionForm,ImportForm
-from django.forms import modelformset_factory
+from django.shortcuts import render,redirect
+from .forms import ConnexionForm,ImportForm,Feuille_paillasseForm
+from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django import forms
 from .models import *
+from django.http import HttpResponse
+import xlwt
+
 
 
 def connexion(request):
@@ -29,10 +32,7 @@ def deconnexion(request):
     return redirect(connexion)
 
 def import_data(request):
-    profil=Profil.objects.filter(user=request.user)
     if request.method == 'POST':
-        paillasse=Feuille_paillasse(profil=profil[0])
-        paillasse.save()
         paillasse_data = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
         dico1 = []
         dico2 = {}
@@ -54,9 +54,8 @@ def import_data(request):
 
         request.session['type_analyses'] = container_type
         request.session['type_analyses_echantillon']= dico1
-        request.session['paillasse_id'] = paillasse.id
 
-        return redirect(choix_analyse)
+        return redirect(creation_paillasse)
 
     else :
         form=  ImportForm()
@@ -65,32 +64,68 @@ def import_data(request):
 
     return render(request, 'myapp/import_data.html',{'form': form} )
 
+def creation_paillasse(request):
+    form = Feuille_paillasseForm(request.POST)
+    profil=Profil.objects.filter(user=request.user)
+    if request.method == "POST":
+        if form.is_valid():
+            paillasse=form.save(commit=False)
+            paillasse.profil=profil[0]
+            paillasse.save()
+            request.session['paillasse_id'] = paillasse.id
+            return redirect(choix_analyse)
+
+    return render(request, 'myapp/paillasse.html',{'form': form} )
+
+
+
 def choix_analyse(request):
-    if 'type_analyses' in request.session and 'paillasse_id' in request.session :
+    if 'type_analyses' in request.session :
         les_types = request.session['type_analyses']
-        paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
         if request.method == 'POST':
             choix=request.POST['choix']
             type_analyse = Type_analyse.objects.filter(nom=choix)
             les_parametres=[]
+            parametres_externe=[]
             param_interne_analyse = type_analyse[0].parametre_interne.all().values_list('nom', flat=True)
-
-            #Création feuille de calcul
-            feuille_calcul=Feuille_calcul(feuille_paillasse=paillasse[0],type_analyse=type_analyse[0])
-            feuille_calcul.save()
+            param_externe_analyse = type_analyse[0].parametre_externe.all().values_list('nom', flat=True)
 
             for elmt in param_interne_analyse:
                 les_parametres.append(elmt)
+            for elmt in param_externe_analyse:
+                parametres_externe.append(elmt)
             request.session['les_parametres'] = les_parametres
+            request.session['parametres_externe'] = parametres_externe
             request.session['choix'] = choix
-            request.session['feuille_calcul_id'] = feuille_calcul.id
 
 
-            return redirect(feuille_calcul_data)
+            return redirect(externe_data_feuille_calcul)
     else:
         les_types=""
 
     return render(request,'myapp/choix_analyse.html',{'les_types':les_types})
+
+def externe_data_feuille_calcul(request):
+    if 'parametres_externe' in request.session and 'paillasse_id' in request.session and 'choix' in request.session :
+        paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
+        param_externe_analyse= request.session['parametres_externe']
+        choix=request.session['choix']
+        type_analyse = Type_analyse.objects.filter(nom=choix)
+        feuille_calculForm = modelform_factory(Feuille_calcul,
+                                              fields=param_externe_analyse,
+                                               )
+        form = feuille_calculForm(request.POST, request.FILES)
+        if request.method == "POST":
+            if form.is_valid():
+                feuille_calcul = form.save(commit=False)
+                feuille_calcul.feuille_paillasse=paillasse[0]
+                feuille_calcul.type_analyse =type_analyse[0]
+                feuille_calcul.save()
+                request.session['feuille_calcul_id'] = feuille_calcul.id
+                return redirect(feuille_calcul_data)
+
+        return render(request, 'myapp/externe_data.html',{'form': form} )
+
 
 def feuille_calcul_data(request):
     num_echantillon=[]
@@ -116,6 +151,7 @@ def feuille_calcul_data(request):
         formset = analyseFormset(request.POST, request.FILES)
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
         analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
+
         if request.method == 'POST':
             #if 'valider' in request.POST: #différencier plusieurs submit
                 if formset.is_valid():
@@ -127,8 +163,8 @@ def feuille_calcul_data(request):
                             analyse.echantillon= echantillon[0]
                             analyse.feuille_calcul= feuille_calcul[0]
                             analyse.save()
+                    return redirect(export_analyse_xls,id_feuille_calcul=request.session['feuille_calcul_id'])
 
-                    return redirect(connexion)
 
                 else:
                     messages.error(request, "Formset not Valid")
@@ -136,7 +172,37 @@ def feuille_calcul_data(request):
 
 
 
-    return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset})
+        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse})
+
+def export_analyse_xls(request,id_feuille_calcul):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="analyse.xls"'
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Analyse')
+    row_num = 0
+
+    font_style = xlwt.XFStyle()
+    font_style.font.bold = True
+    feuille_calcul=  Feuille_calcul.objects.filter(id=id_feuille_calcul)
+    param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
+    columns = param_interne_analyse
+
+    for col_num in range(len(columns)):
+        ws.write(row_num, col_num, columns[col_num], font_style)
+
+    # Sheet body, remaining rows
+    font_style = xlwt.XFStyle()
+    #You can use the * operator to expand a list out into separate arguments when passed to a function
+    rows = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+    for row in rows:
+        row_num += 1
+        for col_num in range(len(row)):
+            ws.write(row_num, col_num, row[col_num], font_style)
+    wb.save(response)
+
+    if request.method == 'POST':
+        return  response
+    return render(request, 'myapp/export_data.html', locals())
 
 
 
