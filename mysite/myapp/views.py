@@ -7,6 +7,14 @@ from django import forms
 from .models import *
 from django.http import HttpResponse
 import xlwt
+from xhtml2pdf import pisa
+from django.template.loader import render_to_string
+
+
+
+
+
+
 
 
 
@@ -181,29 +189,73 @@ def export_analyse_xls(request,id_feuille_calcul):
     ws = wb.add_sheet('Analyse')
     row_num = 0
 
+    gras = xlwt.XFStyle()
+    gras.font.bold = True
+    # Sheet body, remaining rows
     font_style = xlwt.XFStyle()
-    font_style.font.bold = True
-    feuille_calcul=  Feuille_calcul.objects.filter(id=id_feuille_calcul)
+
+    feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
+    param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
+    feuille_calcul_trie=  Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(*param_externe_analyse)
+
+    for elmt in feuille_calcul_trie:
+        for col_num in range(len(feuille_calcul_trie)):
+            ws.write(row_num, 0, param_externe_analyse[col_num], gras)
+            ws.write(row_num, 1, elmt[col_num], font_style)
+            row_num+=1
+    row_num+=2
+
     param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
     columns = param_interne_analyse
 
     for col_num in range(len(columns)):
-        ws.write(row_num, col_num, columns[col_num], font_style)
+        ws.write(row_num, col_num, columns[col_num], gras)
 
-    # Sheet body, remaining rows
-    font_style = xlwt.XFStyle()
-    #You can use the * operator to expand a list out into separate arguments when passed to a function
+    # l'opérateur * permet à la fonction values_list d'interpréter un array
     rows = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
     for row in rows:
         row_num += 1
         for col_num in range(len(row)):
             ws.write(row_num, col_num, row[col_num], font_style)
+
     wb.save(response)
 
     if request.method == 'POST':
         return  response
     return render(request, 'myapp/export_data.html', locals())
 
+
+def generate_pdf(request,id_feuille_calcul):
+
+    # Model data
+    feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
+    #Entete
+    param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
+    #valeur
+    valeur_externe_feuille=  Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(*param_externe_analyse)
+    dico1 = {}
+    for cpt in range(len(param_externe_analyse)):
+        dico1[param_externe_analyse[cpt]] = valeur_externe_feuille[cpt]
+
+
+   #Entete
+    param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
+    #Valeur
+    valeur_interne_feuille = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+    # find the template and render it.
+    html = render_to_string('myapp/rendu_analyse_pdf.html', {'data_externe':dico1,'param_interne_analyse':param_interne_analyse,'valeur_interne_feuille':valeur_interne_feuille})
+
+    # create a pdf
+    pisaStatus = pisa.CreatePDF(
+        html, dest=response)
+    # if error then show some funy view
+    if pisaStatus.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
 
 
 

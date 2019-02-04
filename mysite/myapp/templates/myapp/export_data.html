@@ -1,13 +1,15 @@
 {% extends 'myapp/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <h1> Exorter votre feuille de Calcul </h1>
+    <h1> Exporter votre feuille de Calcul </h1>
 
 <div class="buttonHolder">
     <form action="" method="post">
                 {% csrf_token %}
 
         <input type="submit" name="Exporter en xls" value="Exporter en XLS" class="btn btn-success "/>
+        <input type="submit" name="Exporter en PDF" value="Exporter en PDF" class="btn btn-success "/>
+
     </form>
 </div>
 

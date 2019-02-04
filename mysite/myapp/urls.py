@@ -10,5 +10,6 @@ urlpatterns=[
     path('externe_data/', views.externe_data_feuille_calcul, name='myapp_externe_data'),
     path('feuille_calcul/', views.feuille_calcul_data, name='myapp_calcul'),
     path('export/xls/<int:id_feuille_calcul>', views.export_analyse_xls, name='export_analyse_xls'),
+    path('generate/pdf/<int:id_feuille_calcul>', views.generate_pdf, name='generate_pdf'),
 
 ]
