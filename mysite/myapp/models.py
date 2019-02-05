@@ -36,7 +36,8 @@ class Type_analyse(models.Model):
 class Feuille_calcul(models.Model):
     feuille_paillasse= models.ForeignKey(Feuille_paillasse,on_delete=models.CASCADE)
     type_analyse=models.ForeignKey(Type_analyse,on_delete=models.CASCADE)
-    date_mise_sous_essai= models.CharField(max_length=60)
+    date_analyse = models.DateField(auto_now=False)
+    heure_mise_sous_essai = models.TimeField(auto_now=False)
 
 
 class Echantillon(models.Model):

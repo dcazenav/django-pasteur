@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .forms import ConnexionForm,ImportForm,Feuille_paillasseForm
+from .forms import ConnexionForm,ImportForm,Feuille_paillasseForm,Feuille_calculForm
 from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
@@ -9,7 +9,7 @@ from django.http import HttpResponse
 import xlwt
 from xhtml2pdf import pisa
 from django.template.loader import render_to_string
-
+from datetime import datetime,time
 
 
 
@@ -30,9 +30,11 @@ def connexion(request):
 
     return render(request, 'myapp/connexion.html', locals())
 
+
 def deconnexion(request):
     logout(request)
     return redirect(connexion)
+
 
 def import_data(request):
     if request.method == 'POST':
@@ -60,14 +62,14 @@ def import_data(request):
 
         return redirect(creation_paillasse)
 
-    else :
-        form=  ImportForm()
-
-
+    else:
+        form = ImportForm()
 
     return render(request, 'myapp/import_data.html',{'form': form} )
 
+
 def creation_paillasse(request):
+
     form = Feuille_paillasseForm(request.POST)
     profil=Profil.objects.filter(user=request.user)
     if request.method == "POST":
@@ -78,12 +80,12 @@ def creation_paillasse(request):
             request.session['paillasse_id'] = paillasse.id
             return redirect(choix_analyse)
 
-    return render(request, 'myapp/paillasse.html',{'form': form} )
-
+    return render(request, 'myapp/paillasse.html', {'form': form} )
 
 
 def choix_analyse(request):
-    if 'type_analyses' in request.session :
+
+    if 'type_analyses' in request.session:
         les_types = request.session['type_analyses']
         if request.method == 'POST':
             choix=request.POST['choix']
@@ -108,14 +110,18 @@ def choix_analyse(request):
 
     return render(request,'myapp/choix_analyse.html',{'les_types':les_types})
 
+
+
 def externe_data_feuille_calcul(request):
+
     if 'parametres_externe' in request.session and 'paillasse_id' in request.session and 'choix' in request.session :
         paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
         param_externe_analyse= request.session['parametres_externe']
         choix=request.session['choix']
         type_analyse = Type_analyse.objects.filter(nom=choix)
         feuille_calculForm = modelform_factory(Feuille_calcul,
-                                              fields=param_externe_analyse,
+                                               form=Feuille_calculForm,
+                                               fields=param_externe_analyse,
                                                )
         form = feuille_calculForm(request.POST, request.FILES)
         if request.method == "POST":
@@ -127,10 +133,11 @@ def externe_data_feuille_calcul(request):
                 request.session['feuille_calcul_id'] = feuille_calcul.id
                 return redirect(feuille_calcul_data)
 
-        return render(request, 'myapp/externe_data.html',{'form': form} )
+        return render(request, 'myapp/externe_data.html',{'form': form})
 
 
 def feuille_calcul_data(request):
+
     num_echantillon=[]
     nb_echantillon=0
     if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
@@ -156,7 +163,6 @@ def feuille_calcul_data(request):
         analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
 
         if request.method == 'POST':
-            #if 'valider' in request.POST: #différencier plusieurs submit
                 if formset.is_valid():
                     for form in formset:
                         numero = form.cleaned_data.get('nEchantillon')
@@ -172,16 +178,11 @@ def feuille_calcul_data(request):
                 else:
                     messages.error(request, "Formset not Valid")
 
-
-
-
         return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse})
 
 
-
-
-
 def export_analyse(request,id_feuille_calcul):
+
     if request.method == 'POST':
 
         if 'XLS' in request.POST:
@@ -195,17 +196,31 @@ def export_analyse(request,id_feuille_calcul):
             gras.font.bold = True
             # Sheet body, remaining rows
             font_style = xlwt.XFStyle()
+            date_format = xlwt.XFStyle()
+            date_format.num_format_str = 'DD/MM/YY'
+            time_format = xlwt.XFStyle()
+            time_format.num_format_str ='hh:mm'
 
             feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
             param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
             feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
                 *param_externe_analyse)
+            feuille_calcul_trie = feuille_calcul_trie[0]
 
-            for elmt in feuille_calcul_trie:
-                for col_num in range(len(feuille_calcul_trie)):
-                    ws.write(row_num, 0, param_externe_analyse[col_num], gras)
-                    ws.write(row_num, 1, elmt[col_num], font_style)
-                    row_num += 1
+            dico2 = {}
+            for cpt in range(len(param_externe_analyse)):
+                dico2[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
+
+            for key,value in dico2.items():
+                ws.write(row_num, 0,key, gras)
+                if key == "date_analyse":
+                    ws.write(row_num, 1, value, date_format)
+                elif key == "heure_mise_sous_essai":
+                    ws.write(row_num, 1, value, time_format)
+                else:
+                    ws.write(row_num, 1,value, font_style)
+                row_num += 1
+
             row_num += 2
 
             param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
@@ -233,9 +248,10 @@ def export_analyse(request,id_feuille_calcul):
             # valeur
             valeur_externe_feuille = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
                 *param_externe_analyse)
+            feuille=valeur_externe_feuille[0]
             dico1 = {}
             for cpt in range(len(param_externe_analyse)):
-                dico1[param_externe_analyse[cpt]] = valeur_externe_feuille[cpt]
+                dico1[param_externe_analyse[cpt]] = feuille[cpt]
 
             # Entete
             param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)

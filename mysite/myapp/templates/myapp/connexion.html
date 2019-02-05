@@ -7,13 +7,9 @@
             <p><strong>Utilisateur inconnu ou mauvais de mot de passe.</strong></p>
         {% endif %}
 
-        {% if user.is_authenticated %}
-             Vous êtes connecté, {{ user.username }} !
-        {% else %}
             <form method="post" action=".">
                 {% csrf_token %}
                 {{ form | crispy}}
                 <button type="submit" class="btn btn-success "> connexion </button>
             </form>
-        {% endif %}
     {% endblock %}
