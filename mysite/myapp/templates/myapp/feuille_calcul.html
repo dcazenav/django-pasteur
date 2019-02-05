@@ -46,6 +46,8 @@
 <script>
 function myFunction()
 {
+    // il faut mettre des double quote car choix est un string
+    var type= "{{ choix }}";
     var nb_echantillon={{nb_echantillon}};
     // l'option safe permet de retourner les valeurs dans le tableau parametreInterne
     var parametreInterne= {{parametre_interne|safe}};
@@ -63,16 +65,26 @@ function myFunction()
 
         }
     }
-    for(var i=0;i<nb_echantillon;i++)
+
+    switch(type)
     {
-         v0=parseFloat(document.getElementById(data_form[i][0]).value);
-         v1=parseFloat(document.getElementById(data_form[i][1]).value);
-         v2=parseFloat(document.getElementById(data_form[i][2]).value);
-         facteur=parseFloat(document.getElementById(data_form[i][3]).value);
+    case "kmno4":
+        for(var i=0;i<nb_echantillon;i++)
+        {
+        v0=parseFloat(document.getElementById(data_form[i][0]).value);
+        v1=parseFloat(document.getElementById(data_form[i][1]).value);
+        v2=parseFloat(document.getElementById(data_form[i][2]).value);
+        facteur=parseFloat(document.getElementById(data_form[i][3]).value);
 
         document.getElementById(data_form[i][4]).value = ((v1-v0)*16/v2)*facteur;
 
+        }
+
+
     }
+
+
+
 
 
 }

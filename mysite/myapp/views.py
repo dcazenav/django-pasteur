@@ -146,6 +146,11 @@ def feuille_calcul_data(request):
         choix= request.session['choix']
         feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
 
+        if choix == "kmno4":
+            num_echantillon.insert(0, "resorcinol")
+            Echantillon.objects.get_or_create(numero="resorcinol")
+            nb_echantillon += 1
+
         for nEchantillon in type_analyses_echantillon:
             if choix in nEchantillon[1]:
                 num_echantillon.append(nEchantillon[0])
@@ -159,6 +164,8 @@ def feuille_calcul_data(request):
                                               widgets={'nEchantillon': forms.TextInput(attrs={'readonly': True})}
                                               )
         formset = analyseFormset(request.POST, request.FILES)
+
+
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
         analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
 
@@ -178,7 +185,7 @@ def feuille_calcul_data(request):
                 else:
                     messages.error(request, "Formset not Valid")
 
-        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse})
+        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse,'choix': choix })
 
 
 def export_analyse(request,id_feuille_calcul):
