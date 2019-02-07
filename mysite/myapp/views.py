@@ -229,13 +229,15 @@ def export_analyse(request,id_feuille_calcul):
                 row_num += 1
 
             row_num += 2
-
-            param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
-            columns = param_interne_analyse
+            #On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique
+            columns = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
 
             for col_num in range(len(columns)):
                 ws.write(row_num, col_num, columns[col_num], gras)
 
+            # On trie par nom et ce nom est spécifique au varible présent dans feuille de calcul
+            param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',
+                                                                                                       flat=True)
             # l'opérateur * permet à la fonction values_list d'interpréter un array
             rows = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
             for row in rows:
@@ -265,18 +267,19 @@ def export_analyse(request,id_feuille_calcul):
             # Valeur
             valeur_interne_feuille = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(
                 *param_interne_analyse)
-
+            fullname_param_interne= feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
             # Create a Django response object, and specify content_type as pdf
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="report.pdf"'
             # find the template and render it.
             html = render_to_string('myapp/rendu_analyse_pdf.html',
-                                    {'data_externe': dico1, 'param_interne_analyse': param_interne_analyse,
+                                    {'data_externe': dico1, 'param_interne_analyse': fullname_param_interne,
                                      'valeur_interne_feuille': valeur_interne_feuille})
 
             # create a pdf
             pisaStatus = pisa.CreatePDF(
-                html, dest=response)
+                html, dest=response,
+            )
             # if error then show some funy view
             if pisaStatus.err:
                 return HttpResponse('We had some errors <pre>' + html + '</pre>')
