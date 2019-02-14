@@ -21,7 +21,11 @@ th,td
 
    </style>
  <body>
+ {% if path != "" %}
+<img src="{{path}}" alt="My image">
+{%endif%}
  <h1>test</h1>
+ <br/>
  {% for key,value in data_externe.items %}
  <strong>{{key}} :</strong> {{value}}
  <br/>

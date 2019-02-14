@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+import datetime
+
 
 class Profil(models.Model):
     user = models.OneToOneField(
@@ -18,6 +20,7 @@ class Feuille_paillasse(models.Model):
 
 class Parametre_externe_analyse(models.Model):
     nom = models.CharField(max_length=60)
+    valeur = models.CharField(max_length=100,default="NULL")
     def __str__(self):
         return self.nom
 
@@ -37,9 +40,44 @@ class Type_analyse(models.Model):
 
 class Feuille_calcul(models.Model):
     feuille_paillasse= models.ForeignKey(Feuille_paillasse,on_delete=models.CASCADE)
-    type_analyse=models.ForeignKey(Type_analyse,on_delete=models.CASCADE)
-    date_analyse = models.DateField(auto_now=False)
-    heure_mise_sous_essai = models.TimeField(auto_now=False)
+    type_analyse = models.ForeignKey(Type_analyse, on_delete=models.CASCADE)
+    date_analyse = models.DateField(auto_now=False,default=timezone.now)
+    heure_mise_sous_essai = models.TimeField(auto_now=False,default=datetime.time(00, 00))
+    date_etalonnage = models.DateField(auto_now=False, verbose_name="Date de l'étalonnage", default=timezone.now)
+    longueur_onde=  models.CharField(max_length=100, verbose_name="longueur d'onde d'analyse", default="NULL")
+    visa = models.CharField(max_length=100, verbose_name="Visa", default="NULL")
+
+    var1_mest = models.CharField(max_length=100, verbose_name="numéro de lot des filtres",default="NULL")
+    var2_mest = models.CharField(max_length=100, verbose_name="MEST de la solution de cellulose microcristalline(mg/L)",default="NULL")
+    var3_mest = models.CharField(max_length=100, verbose_name="rendement(%)",default="NULL")
+    var4_mest = models.DateField(auto_now=False, verbose_name="date de préparation de la solution de cellulose microcristalline",default=timezone.now)
+    var1_ntk = models.DateField(auto_now=False, verbose_name="Date de préparation du mélange catalyseur", default=timezone.now)
+    var2_ntk = models.CharField(max_length=100, verbose_name="N° de lot H2SO4", default="NULL")
+    var3_ntk = models.CharField(max_length=100, verbose_name="N° de lot acide chlorhydrique", default="NULL")
+    var4_ntk = models.CharField(max_length=100, verbose_name="N° de lot de l’acide borique", default="NULL")
+    var1_dbo_avec_dilution = models.DateField(auto_now=False, verbose_name="date de préparation de l'eau de dilution", default=timezone.now)
+    var2_dbo_avec_dilution = models.CharField(max_length=100, verbose_name="N° échant utilisé pour l'eau de dilution ensemencée", default="NULL")
+    var3_dbo_avec_dilution = models.CharField(max_length=100, verbose_name="DCO de cette échantillon", default="NULL")
+    var1_dbo_sans_dilution = models.DateField(auto_now=False, verbose_name="Date de préparation de la solution de lavage", default=timezone.now)
+    var1_oxygene_dissous = models.CharField(max_length=100, verbose_name="Volume thiosulfate versé pour l'étalonnage mL", default="NULL")
+    var2_oxygene_dissous = models.CharField(max_length=100, verbose_name="Concentration du thiosulfate de sodium mmol/L", default="NULL")
+    var1_chlorophylle_scor_unesco = models.CharField(max_length=100, verbose_name="Lot d'acétone utilisé", default="NULL")
+    var1_chlorophylle_lorenzen = models.CharField(max_length=100, verbose_name="Lot d'acide chlorydrique utilisé", default="NULL")
+    var2_chlorophylle_lorenzen = models.CharField(max_length=100, verbose_name="Lot d'acétone utilisé", default="NULL")
+    var3_chlorophylle_lorenzen = models.DateField(auto_now=False, verbose_name="Date de préparation de l'HCI", default=timezone.now)
+    var1_dco = models.DateField(auto_now=False, verbose_name="date de minéralisation", default=timezone.now)
+    var2_dco = models.DateField(auto_now=False, verbose_name="date de titration", default=timezone.now)
+    var3_dco = models.CharField(max_length=100, verbose_name="Lot de la solution ferroïne", default="NULL")
+    var4_dco = models.CharField(max_length=100, verbose_name="Lot du H2SO4 4 mol/l", default="NULL")
+    var5_dco = models.CharField(max_length=100, verbose_name="volume de sulfate versé pour la détermintation de sa concentration", default="NULL")
+    var6_dco = models.CharField(max_length=100, verbose_name="valeur de solution de référence C", default="NULL")
+    var7_dco = models.CharField(max_length=100, verbose_name="essaie à blanc V1", default="NULL")
+    var8_dco = models.CharField(max_length=100, verbose_name="lot de sulfate de mercure", default="NULL")
+    var9_dco = models.CharField(max_length=100, verbose_name="lot de sulfate d'argent", default="NULL")
+    var10_dco = models.CharField(max_length=100, verbose_name="Blanc", default="NULL")
+
+
+
 
 
 class Echantillon(models.Model):

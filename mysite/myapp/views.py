@@ -9,7 +9,9 @@ from django.http import HttpResponse
 import xlwt
 from xhtml2pdf import pisa
 from django.template.loader import render_to_string
-from datetime import datetime,time
+import os.path
+from PIL import Image
+
 
 
 
@@ -185,12 +187,40 @@ def feuille_calcul_data(request):
                 else:
                     messages.error(request, "Formset not Valid")
 
-        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse,'choix': choix })
+        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse,'choix': choix,'feuille_calcul':feuille_calcul[0]})
 
 
 def export_analyse(request,id_feuille_calcul):
 
     if request.method == 'POST':
+        feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
+        param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
+        liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
+        feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
+            *param_externe_analyse)
+        feuille_calcul_trie = feuille_calcul_trie[0]
+        dico = {}
+        dico2= {}
+        # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
+        liste_param_interne = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
+        # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
+        param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',flat=True)
+        liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+        for cpt in range(len(param_externe_analyse)):
+            dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
+            dico2[liste_param_externe[cpt]] = feuille_calcul_trie[cpt]
+
+
+        path = ""
+        if (feuille_calcul[0].type_analyse.nom == "sabm"):
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.png"
+        elif (feuille_calcul[0].type_analyse.nom == "silice"):
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silice.png"
+        elif (feuille_calcul[0].type_analyse.nom == "silicate"):
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silicate.png"
+        elif (feuille_calcul[0].type_analyse.nom == "silice ifremer"):
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silice ifremer.png"
+
 
         if 'XLS' in request.POST:
             response = HttpResponse(content_type='application/ms-excel')
@@ -198,7 +228,6 @@ def export_analyse(request,id_feuille_calcul):
             wb = xlwt.Workbook(encoding='utf-8')
             ws = wb.add_sheet('Analyse')
             row_num = 0
-
             gras = xlwt.XFStyle()
             gras.font.bold = True
             # Sheet body, remaining rows
@@ -208,83 +237,77 @@ def export_analyse(request,id_feuille_calcul):
             time_format = xlwt.XFStyle()
             time_format.num_format_str ='hh:mm'
 
-            feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
-            param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
-            feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
-                *param_externe_analyse)
-            feuille_calcul_trie = feuille_calcul_trie[0]
+            tab_date=['date_analyse','date_etalonnage','var4_mest','var1_ntk','var1_dbo_avec_dilution','var1_dbo_sans_dilution','var3_chlorophylle_lorenzen',' var1_dco','var2_dco']
+            cpt=0
+            for key,value in dico.items():
 
-            dico2 = {}
-            for cpt in range(len(param_externe_analyse)):
-                dico2[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
-
-            for key,value in dico2.items():
-                ws.write(row_num, 0,key, gras)
-                if key == "date_analyse":
-                    ws.write(row_num, 1, value, date_format)
+                ws.write(row_num, 2,liste_param_externe[cpt], gras)
+                if key in tab_date:
+                    ws.write(row_num, 3, value, date_format)
                 elif key == "heure_mise_sous_essai":
-                    ws.write(row_num, 1, value, time_format)
+                    ws.write(row_num, 3, value, time_format)
                 else:
-                    ws.write(row_num, 1,value, font_style)
+                    ws.write(row_num, 3,value, font_style)
+                cpt+=1
                 row_num += 1
 
             row_num += 2
-            #On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique
-            columns = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
+            if path != "" :
+                img = Image.open(path)
+                path_bmp=path.replace("png","bmp")
+                #transforme l'image png en bmp
+                img.save(path_bmp)
+                ws.insert_bitmap(path_bmp, row_num, 2, scale_x=0.5, scale_y=0.8)
+                row_num +=20
 
-            for col_num in range(len(columns)):
-                ws.write(row_num, col_num, columns[col_num], gras)
+            for col_num in range(len(liste_param_interne)):
+                ws.write(row_num, col_num+2, liste_param_interne[col_num], gras)
 
-            # On trie par nom et ce nom est spécifique au varible présent dans feuille de calcul
-            param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',
-                                                                                                       flat=True)
+
             # l'opérateur * permet à la fonction values_list d'interpréter un array
-            rows = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
-            for row in rows:
+            for row in liste_analyses:
                 row_num += 1
                 for col_num in range(len(row)):
-                    ws.write(row_num, col_num, row[col_num], font_style)
+                    ws.write(row_num, col_num+2, row[col_num], font_style)
 
             wb.save(response)
 
             return response
 
         else:
-            # Model data
-            feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
-            # Entete
-            param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
-            # valeur
-            valeur_externe_feuille = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
-                *param_externe_analyse)
-            feuille=valeur_externe_feuille[0]
-            dico1 = {}
-            for cpt in range(len(param_externe_analyse)):
-                dico1[param_externe_analyse[cpt]] = feuille[cpt]
-
-            # Entete
-            param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True)
-            # Valeur
-            valeur_interne_feuille = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(
-                *param_interne_analyse)
-            fullname_param_interne= feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
             # Create a Django response object, and specify content_type as pdf
             response = HttpResponse(content_type='application/pdf')
             response['Content-Disposition'] = 'attachment; filename="report.pdf"'
             # find the template and render it.
             html = render_to_string('myapp/rendu_analyse_pdf.html',
-                                    {'data_externe': dico1, 'param_interne_analyse': fullname_param_interne,
-                                     'valeur_interne_feuille': valeur_interne_feuille})
+                                    {'data_externe': dico2,'param_externe_analyse':liste_param_externe, 'param_interne_analyse': liste_param_interne,
+                                     'valeur_interne_feuille': liste_analyses,'path': path})
 
             # create a pdf
             pisaStatus = pisa.CreatePDF(
-                html, dest=response,
+                html, dest=response
             )
             # if error then show some funy view
             if pisaStatus.err:
                 return HttpResponse('We had some errors <pre>' + html + '</pre>')
             return response
     return render(request, 'myapp/export_data.html', locals())
+
+
+def test(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="test.xls"'
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Image')
+    path1 = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.png"
+    img = Image.open(path1)
+    path2 = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.bmp"
+    #on transforme l'image png en bmp
+    img.save(path2)
+    # les attibut scale sont la pour réglé la taille de l'image
+    ws.insert_bitmap(path2, 2, 2,scale_x=0.5,scale_y=0.8)
+    wb.save(response)
+    return response
 
 
 
