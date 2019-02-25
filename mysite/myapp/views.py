@@ -9,10 +9,10 @@ from django.http import HttpResponse
 import xlwt
 from xhtml2pdf import pisa
 from django.template.loader import render_to_string
-import os.path
+import os.path,errno
 from PIL import Image
-
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def connexion(request):
@@ -36,6 +36,20 @@ def connexion(request):
 def deconnexion(request):
     logout(request)
     return redirect(connexion)
+
+
+def index_paillasse(request):
+
+    profil=Profil.objects.filter(user=request.user)
+    paillasse = Feuille_paillasse.objects.filter(profil=profil[0])
+    return render(request,'myapp/index_paillasse.html', locals())
+
+
+def view_paillasse(request,id_feuille_paillasse):
+    paillasse = Feuille_paillasse.objects.filter(id=id_feuille_paillasse)
+    feuille_calcul=Feuille_calcul.objects.filter(feuille_paillasse=paillasse[0])
+    return render(request,'myapp/view_paillasse.html', locals())
+
 
 
 def import_data(request):
@@ -76,9 +90,7 @@ def creation_paillasse(request):
     profil=Profil.objects.filter(user=request.user)
     if request.method == "POST":
         if form.is_valid():
-            paillasse=form.save(commit=False)
-            paillasse.profil=profil[0]
-            paillasse.save()
+            paillasse,created = Feuille_paillasse.objects.get_or_create(profil=profil[0],numero_paillasse=form.cleaned_data['numero_paillasse'],poste='poste')
             request.session['paillasse_id'] = paillasse.id
             return redirect(choix_analyse)
 
@@ -133,7 +145,10 @@ def externe_data_feuille_calcul(request):
                 feuille_calcul.type_analyse =type_analyse[0]
                 feuille_calcul.save()
                 request.session['feuille_calcul_id'] = feuille_calcul.id
-                return redirect(feuille_calcul_data)
+                if choix in ['sabm','silice','silice ifremer','silicate'] :
+                    return redirect(fix_etalonnage)
+                else:
+                    return redirect(feuille_calcul_data)
 
         return render(request, 'myapp/externe_data.html',{'form': form})
 
@@ -142,16 +157,74 @@ def feuille_calcul_data(request):
 
     num_echantillon=[]
     nb_echantillon=0
+    array_concentration=[]
+    array_absorbance=[]
+    static_name_fig=""
     if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
         type_analyses_echantillon = request.session['type_analyses_echantillon']
         param_interne_analyse= request.session['les_parametres']
         choix= request.session['choix']
         feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
-
+        profil = Profil.objects.filter(user=request.user)
+        nom_user= request.user.username
+        path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp"+"\\"+nom_user
+        static_name_fig="myapp/"+nom_user
         if choix == "kmno4":
             num_echantillon.insert(0, "resorcinol")
             Echantillon.objects.get_or_create(numero="resorcinol")
             nb_echantillon += 1
+
+        if choix == "sabm":
+            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
+            for etalonnage in set_etalonnage:
+                array_concentration.append(float((etalonnage.c_lauryl).replace(',','.')))
+                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+
+        if choix == "silice":
+            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
+            for etalonnage in set_etalonnage:
+                array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
+                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+
+        if choix == "silice ifremer":
+            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
+            for etalonnage in set_etalonnage:
+                array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
+                array_absorbance.append(float(etalonnage.absorbance))
+        if choix == "silicate":
+            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
+            for etalonnage in set_etalonnage:
+                array_concentration.append(float((etalonnage.c_mg).replace(',','.')))
+                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+        #création du graphique d'absorbance
+        if len(array_concentration) !=0 and len(array_absorbance)!=0:
+            try:
+                os.makedirs(path)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            nom_fig = path+"\\"+feuille_calcul[0].type_analyse.nom+".png"
+            static_name_fig=static_name_fig+"/"+ feuille_calcul[0].type_analyse.nom+".png"
+            #regression linéaire
+            x = np.array(array_concentration)
+            A = np.vstack([x, np.ones(len(x))]).T
+            y = np.array(array_absorbance)
+            m, c = np.linalg.lstsq(A, y, rcond=None)[0]
+            #coeeficient de corrélation
+            cor = np.corrcoef(x, y)[-1, 0]
+            plt.plot(x, y, 'o', label='Observations', markersize=10)
+            plt.plot(x, m * x + c, 'r', label='regression line')
+            plt.xlabel("Concentration")
+            plt.ylabel("Absorbance")
+            info = "Y= " + str(round(m, 4)) + "x" + "+" + str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
+            plt.suptitle(info, fontsize=12)
+            plt.legend()
+            plt.savefig(nom_fig)
+            #on efface le graphe pour ne pas réécrire dessus
+            plt.clf()
+
+
+
 
         for nEchantillon in type_analyses_echantillon:
             if choix in nEchantillon[1]:
@@ -163,8 +236,52 @@ def feuille_calcul_data(request):
                                               fields=param_interne_analyse,
                                               max_num=nb_echantillon,
                                               min_num=nb_echantillon,
-                                              widgets={'nEchantillon': forms.TextInput(attrs={'readonly': True})}
-                                              )
+                                              widgets=
+                                                {
+                                                    'nEchantillon': forms.TextInput(attrs={'readonly': True}),
+                                                    'var5_kmno4': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_siccite':forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_siccite': forms.TextInput(attrs={'readonly': True}),
+                                                    'var7_siccite':forms.TextInput(attrs={'readonly': True}),
+                                                    'var8_siccite': forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_mvs' : forms.TextInput(attrs={'readonly': True}),
+                                                    'var7_mvs': forms.TextInput(attrs={'readonly': True}),
+                                                    'var8_mvs': forms.TextInput(attrs={'readonly': True}),
+                                                    'var9_mvs': forms.TextInput(attrs={'readonly': True}),
+                                                    'var4_mest': forms.TextInput(attrs={'readonly': True}),
+                                                    'var4_dco' : forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_ntk' : forms.TextInput(attrs={'readonly': True}),
+                                                    'var5_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var7_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var8_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var11_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var12_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var13_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var14_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var15_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var16_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var17_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var7_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var9_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var10_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_silicate': forms.TextInput(attrs={'readonly': True}),
+                                                    'var4_oxygene_dissous': forms.TextInput(attrs={'readonly': True}),
+                                                    'var10_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
+                                                    'var11_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
+                                                    'var4_sabm':forms.TextInput(attrs={'readonly': True}),
+                                                    'var5_residu_sec':forms.TextInput(attrs={'readonly': True}),
+                                                    'var6_residu_sec': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_silice_ifremer': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_silice': forms.TextInput(attrs={'readonly': True}),
+                                                    'var8_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
+                                                    'var9_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
+                                                    'var10_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
+                                                    'var11_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
+
+                                                })
         formset = analyseFormset(request.POST, request.FILES)
 
 
@@ -187,7 +304,12 @@ def feuille_calcul_data(request):
                 else:
                     messages.error(request, "Formset not Valid")
 
-        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,'parametre_interne':param_interne_analyse,'choix': choix,'feuille_calcul':feuille_calcul[0]})
+        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,
+                                                           'parametre_interne':param_interne_analyse,'choix': choix,
+                                                           'feuille_calcul':feuille_calcul[0],'array_concentration':array_concentration,
+                                                           'array_absorbance':array_absorbance,
+                                                           'static_name_fig':static_name_fig
+                                                           })
 
 
 def export_analyse(request,id_feuille_calcul):
@@ -205,21 +327,20 @@ def export_analyse(request,id_feuille_calcul):
         liste_param_interne = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
         # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
         param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',flat=True)
+        # l'opérateur * permet à la fonction values_list d'interpréter un array
         liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
         for cpt in range(len(param_externe_analyse)):
             dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
             dico2[liste_param_externe[cpt]] = feuille_calcul_trie[cpt]
+        dico["N° feuille paillasse"]=feuille_calcul[0].feuille_paillasse.numero_paillasse
+        dico["Analyse réalisé par"]=feuille_calcul[0].feuille_paillasse.profil.user.username
+        dico2["N° feuille paillasse"] = feuille_calcul[0].feuille_paillasse.numero_paillasse
+        dico2["Analyse réalisé par"] = feuille_calcul[0].feuille_paillasse.profil.user.username
 
 
         path = ""
-        if (feuille_calcul[0].type_analyse.nom == "sabm"):
-            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.png"
-        elif (feuille_calcul[0].type_analyse.nom == "silice"):
-            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silice.png"
-        elif (feuille_calcul[0].type_analyse.nom == "silicate"):
-            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silicate.png"
-        elif (feuille_calcul[0].type_analyse.nom == "silice ifremer"):
-            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\silice ifremer.png"
+        if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+request.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
 
 
         if 'XLS' in request.POST:
@@ -237,11 +358,11 @@ def export_analyse(request,id_feuille_calcul):
             time_format = xlwt.XFStyle()
             time_format.num_format_str ='hh:mm'
 
-            tab_date=['date_analyse','date_etalonnage','var4_mest','var1_ntk','var1_dbo_avec_dilution','var1_dbo_sans_dilution','var3_chlorophylle_lorenzen',' var1_dco','var2_dco']
+            tab_date=['date_analyse','date_etalonnage','var4_mest','var1_ntk','var1_dbo_avec_dilution','var1_dbo_sans_dilution','var3_chlorophylle_lorenzen','var1_dco','var2_dco']
             cpt=0
             for key,value in dico.items():
-
-                ws.write(row_num, 2,liste_param_externe[cpt], gras)
+                #obtenir les bon key dans dico2
+                ws.write(row_num, 2,list(dico2)[cpt], gras)
                 if key in tab_date:
                     ws.write(row_num, 3, value, date_format)
                 elif key == "heure_mise_sous_essai":
@@ -253,7 +374,7 @@ def export_analyse(request,id_feuille_calcul):
 
             row_num += 2
             if path != "" :
-                img = Image.open(path)
+                img = Image.open(path).convert("RGB")
                 path_bmp=path.replace("png","bmp")
                 #transforme l'image png en bmp
                 img.save(path_bmp)
@@ -264,7 +385,6 @@ def export_analyse(request,id_feuille_calcul):
                 ws.write(row_num, col_num+2, liste_param_interne[col_num], gras)
 
 
-            # l'opérateur * permet à la fonction values_list d'interpréter un array
             for row in liste_analyses:
                 row_num += 1
                 for col_num in range(len(row)):
@@ -280,7 +400,7 @@ def export_analyse(request,id_feuille_calcul):
             response['Content-Disposition'] = 'attachment; filename="report.pdf"'
             # find the template and render it.
             html = render_to_string('myapp/rendu_analyse_pdf.html',
-                                    {'data_externe': dico2,'param_externe_analyse':liste_param_externe, 'param_interne_analyse': liste_param_interne,
+                                    {'data_externe': dico2,'param_externe_analyse':list(dico2), 'param_interne_analyse': liste_param_interne,
                                      'valeur_interne_feuille': liste_analyses,'path': path})
 
             # create a pdf
@@ -294,27 +414,79 @@ def export_analyse(request,id_feuille_calcul):
     return render(request, 'myapp/export_data.html', locals())
 
 
+def fix_etalonnage(request):
+    if 'choix' in request.session and 'feuille_calcul_id' in request.session :
+        choix= request.session['choix']
+        nb_etalonnage=6
+        profil=Profil.objects.filter(user=request.user)
+        type_analyse = Type_analyse.objects.filter(nom=choix)
+        param_etalonnage=type_analyse[0].parametre_etalonnage.all().values_list('nom',flat=True)
+        #tableau contenant les parametre de l'étalonnage mais pour le javascript
+        param_etalonnage_js=[]
+        for param in param_etalonnage:
+            param_etalonnage_js.append(param)
+        etalonnageFormset= modelformset_factory(Etalonnage,
+                                                fields=param_etalonnage,
+                                                max_num=nb_etalonnage,
+                                                min_num=nb_etalonnage,
+                                                widgets=
+                                                {
+                                                    'c_lauryl': forms.TextInput(attrs={'readonly': True}),
+                                                    'c_mg': forms.TextInput(attrs={'readonly': True}),
+                                                    'c_micromol_l' : forms.TextInput(attrs={'readonly': True}),
+                                                })
+        formset = etalonnageFormset(request.POST, request.FILES)
+        #la requête dans le queryset permet de créer un ensemble d'étalonnage par profil et analyse
+        if choix =="sabm":
+            etalonnageFormset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
+                                              queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0]))
+        elif choix=="silicate":
+            etalonnageFormset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
+                                                                                     type_analyse=type_analyse[0]))
+        elif choix == "silice":
+            etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
+                                                                                     type_analyse=type_analyse[0]))
+        elif choix == "silice ifremer":
+            etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.4', '0.5', '1', '5', '10']],
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
+                                                                                     type_analyse=type_analyse[0]))
+
+
+        if request.method == 'POST':
+            if formset.is_valid():
+                feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id']).update(etalonnage=request.POST['etalonnage'])
+                for form in formset:
+                    etalonnage = form.save(commit=False)
+                    etalonnage.type_analyse = type_analyse[0]
+                    etalonnage.profil = profil[0]
+                    etalonnage.save()
+                return redirect(feuille_calcul_data)
+
+        return render(request,'myapp/fix_etalonnage.html',{'formset':etalonnageFormset,'param_etalonnage':param_etalonnage_js})
+
+
+
+
 def test(request):
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="test.xls"'
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet('Image')
-    path1 = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.png"
-    img = Image.open(path1)
-    path2 = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\sabm.bmp"
-    #on transforme l'image png en bmp
-    img.save(path2)
-    # les attibut scale sont la pour réglé la taille de l'image
-    ws.insert_bitmap(path2, 2, 2,scale_x=0.5,scale_y=0.8)
-    wb.save(response)
-    return response
-
-
-
-
-
-
-
+    #Regression linear #
+    x= np.array([0, 0.1, 0.4, 1,2,4])
+    A= np.vstack([x, np.ones(len(x))]).T
+    y = np.array([0,0.043, 0.196, 0.56, 1.112,1.904])
+    m, c = np.linalg.lstsq(A, y, rcond=None)[0]
+    ###############################
+    #coeficient de correlation
+    cor=np.corrcoef(x, y)[-1,0]
+    plt.plot(x, y, 'o', label='Observations', markersize=10)
+    plt.plot(x, m * x + c, 'r', label='regression line')
+    plt.xlabel("Concentration")
+    plt.ylabel("Absorbance")
+    info="Y= "+str(round(m,4))+"x"+"+"+str(round(c,4))+"\n"+"R²= "+ str(round(pow(cor,2),4))
+    plt.suptitle(info, fontsize=12)
+    plt.legend()
+    plt.savefig('test.png')
+    return render(request,'myapp/test.html',{'m':m,'c':c,'cor':cor} )
 
 
 

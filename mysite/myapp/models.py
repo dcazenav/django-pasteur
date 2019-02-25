@@ -12,11 +12,15 @@ class Profil(models.Model):
     def __str__(self):
         return self.user.username
 
+
 class Feuille_paillasse(models.Model):
     profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
     numero_paillasse= models.CharField(max_length=60)
     poste= models.CharField(max_length=60)
     date= models.DateTimeField(default=timezone.now)
+    def __str__(self):
+        return self.numero_paillasse
+
 
 class Parametre_externe_analyse(models.Model):
     nom = models.CharField(max_length=60)
@@ -24,28 +28,49 @@ class Parametre_externe_analyse(models.Model):
     def __str__(self):
         return self.nom
 
+
 class Parametre_interne_analyse(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
 
     def __str__(self):
         return self.nom
+class Parametre_etalonnage(models.Model):
+    nom = models.CharField(max_length=60)
+    valeur = models.CharField(max_length=100)
+    def __str__(self):
+        return self.nom
+
 
 class Type_analyse(models.Model):
     nom = models.CharField(max_length=100)
     parametre_interne=models.ManyToManyField(Parametre_interne_analyse)
     parametre_externe = models.ManyToManyField(Parametre_externe_analyse)
+    parametre_etalonnage = models.ManyToManyField(Parametre_etalonnage,blank=True)
     def __str__(self):
         return self.nom
+
+class Etalonnage(models.Model):
+    profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
+    type_analyse = models.ForeignKey(Type_analyse, on_delete=models.CASCADE)
+    c_lauryl = models.CharField(max_length=100, verbose_name="concentration mg/L de lauryl sulfate de sodium")
+    c_mg = models.CharField(max_length=100, verbose_name="concentration mg/L")
+    c_micromol_l= models.CharField(max_length=100, verbose_name="concentration µmol/L")
+    absorbance= models.CharField(max_length=100, verbose_name="absorbance")
+
+
 
 class Feuille_calcul(models.Model):
     feuille_paillasse= models.ForeignKey(Feuille_paillasse,on_delete=models.CASCADE)
     type_analyse = models.ForeignKey(Type_analyse, on_delete=models.CASCADE)
-    date_analyse = models.DateField(auto_now=False,default=timezone.now)
+    date_creation = models.DateTimeField(default=timezone.now)
+
+    date_analyse = models.DateField(auto_now=False,default=datetime.datetime(1980, 1, 1, 1, 1,1))
     heure_mise_sous_essai = models.TimeField(auto_now=False,default=datetime.time(00, 00))
     date_etalonnage = models.DateField(auto_now=False, verbose_name="Date de l'étalonnage", default=timezone.now)
     longueur_onde=  models.CharField(max_length=100, verbose_name="longueur d'onde d'analyse", default="NULL")
     visa = models.CharField(max_length=100, verbose_name="Visa", default="NULL")
+    etalonnage = models.CharField(max_length=100, verbose_name="Etalonnage", default="NULL")
 
     var1_mest = models.CharField(max_length=100, verbose_name="numéro de lot des filtres",default="NULL")
     var2_mest = models.CharField(max_length=100, verbose_name="MEST de la solution de cellulose microcristalline(mg/L)",default="NULL")

@@ -3,13 +3,19 @@
 {% load static %}
 {% block content %}
 
-    <h1> Entrer vos données</h1>
+    <h1> Entrez vos données</h1>
 <br/>
-<div class="row">
 {% if choix in 'silicate,sabm,silice,silice ifremer'%}
-<img src="{% static 'myapp/sabm.png' %}" alt="My image">
-{% endif %}
+<div class="row">
+
+<a href="#demo" data-toggle="collapse">Afficher le tableau d'absorbance</a>
 </div>
+<div class="row">
+<div id="demo" class="collapse">
+<img src="{% static static_name_fig %}" alt="My image" height="400" width="500" align="left">
+</div>
+</div>
+{% endif %}
 <div class="row">
 
    <form method="post" action="">
@@ -107,7 +113,7 @@ function myFunction()
                 var v1=parseFloat(document.getElementById(data_form[i][1]).value);
                 var v2=parseFloat(document.getElementById(data_form[i][2]).value);
                 var facteur=parseFloat(document.getElementById(data_form[i][3]).value);
-                document.getElementById(data_form[i][4]).value = ((v1-v0)*16/v2)*facteur;
+                document.getElementById(data_form[i][4]).value = parseFloat(((v1-v0)*16/v2)*facteur).toFixed(2) ;
 
             }
             break;
@@ -118,11 +124,11 @@ function myFunction()
                 var m2 = parseFloat(document.getElementById(data_form[i][1]).value);
                 var m_coup_vide = parseFloat(document.getElementById(data_form[i][3]).value);
                 var v_l = parseFloat(document.getElementById(data_form[i][4]).value);
-                document.getElementById(data_form[i][2]).value = m2-m_coup_vide;
-                document.getElementById(data_form[i][5]).value = (m2-m_coup_vide)*(1/v_l);
-                document.getElementById(data_form[i][6]).value = (m2-m_coup_vide)/(m1-m_coup_vide)*100 ;
+                document.getElementById(data_form[i][2]).value = parseFloat(m2-m_coup_vide).toFixed(2);
+                document.getElementById(data_form[i][5]).value = parseFloat((m2-m_coup_vide)*(1/v_l)).toFixed(0);
+                document.getElementById(data_form[i][6]).value = parseFloat((m2-m_coup_vide)/(m1-m_coup_vide)*100).toFixed(0) ;
                 var ms_prct = parseFloat(document.getElementById(data_form[i][6]).value);
-                document.getElementById(data_form[i][7]).value = 100-ms_prct;
+                document.getElementById(data_form[i][7]).value = parseFloat(100-ms_prct).toFixed(0);
 
             }
             break;
@@ -135,10 +141,10 @@ function myFunction()
                 var mc = parseFloat(document.getElementById(data_form[i][2]).value);
                 var m2 = parseFloat(document.getElementById(data_form[i][3]).value);
                 var v_l = parseFloat(document.getElementById(data_form[i][4]).value);
-                document.getElementById(data_form[i][5]).value =((mc-ma)/(mb-ma)*100) ;
-                document.getElementById(data_form[i][6]).value =(mc-ma)*(1/v_l) ;
-                document.getElementById(data_form[i][7]).value =((mc-m2)/(mc-ma)*100) ;
-                document.getElementById(data_form[i][8]).value = (mc-m2)*(1/v_l);
+                document.getElementById(data_form[i][5]).value =parseFloat(((mc-ma)/(mb-ma)*100)).toFixed(0) ;
+                document.getElementById(data_form[i][6]).value =parseFloat((mc-ma)*(1/v_l)).toFixed(0);
+                document.getElementById(data_form[i][7]).value =parseFloat(((mc-m2)/(mc-ma)*100)).toFixed(0) ;
+                document.getElementById(data_form[i][8]).value = parseFloat((mc-m2)*(1/v_l)).toFixed(0);
              }
              break;
 
@@ -148,7 +154,7 @@ function myFunction()
                 var p1 = parseFloat(document.getElementById(data_form[i][0]).value);
                 var v  = parseFloat(document.getElementById(data_form[i][1]).value);
                 var p2 = parseFloat(document.getElementById(data_form[i][2]).value);
-                document.getElementById(data_form[i][3]).value = ((p2-p1)*1000)/v;
+                document.getElementById(data_form[i][3]).value = parseFloat(((p2-p1)*1000)/v).toFixed(1);
             }
             break;
 
@@ -162,7 +168,7 @@ function myFunction()
                 var v2= parseFloat(document.getElementById(data_form[i][0]).value);
                 var v_analyse= parseFloat(document.getElementById(data_form[i][1]).value);
                 facteur= parseFloat(document.getElementById(data_form[i][2]).value);
-                document.getElementById(data_form[i][3]).value = ((8000*solution_c*(essai_blanc-v2))/v_analyse)*facteur;
+                document.getElementById(data_form[i][3]).value = parseFloat(((8000*solution_c*(essai_blanc-v2))/v_analyse)*facteur).toFixed(2);
             }
             break;
         case "ntk":
@@ -175,7 +181,7 @@ function myFunction()
                 var facteur= parseFloat(document.getElementById(data_form[i][4]).value);
                 if(v0 >0 )
                 {
-                     document.getElementById(data_form[i][5]).value =((v1-v2)/v0)*c*14.01*1000*facteur;
+                     document.getElementById(data_form[i][5]).value =parseFloat(((v1-v2)/v0)*c*14.01*1000*facteur).toFixed(2);
                 }
             }
             break;
@@ -187,8 +193,8 @@ function myFunction()
                     var m1= parseFloat(document.getElementById(data_form[i][1]).value);
                     var m2= parseFloat(document.getElementById(data_form[i][2]).value);
                     var v= parseFloat(document.getElementById(data_form[i][3]).value);
-                    document.getElementById(data_form[i][4]).value =((m1-m0)/v)*1000;
-                    document.getElementById(data_form[i][5]).value =((m2-m0)/v)*1000;
+                    document.getElementById(data_form[i][4]).value =parseFloat(((m1-m0)/v)*1000).toFixed(0);
+                    document.getElementById(data_form[i][5]).value = parseFloat(((m2-m0)/v)*1000).toFixed(0);
 
                 }
             break;
@@ -204,12 +210,12 @@ function myFunction()
                 var a0_na_750 = parseFloat(document.getElementById(data_form[i][4]).value);
                 var a0_a_665 = parseFloat(document.getElementById(data_form[i][5]).value);
                 var a0_a_750 = parseFloat(document.getElementById(data_form[i][6]).value);
-                document.getElementById(data_form[i][7]).value =(a0_na_665-blc_665)-(a0_na_750-blc_750);
-                document.getElementById(data_form[i][8]).value =(a0_a_665-blc_665)-(a0_a_750-blc_750);
+                document.getElementById(data_form[i][7]).value =parseFloat((a0_na_665-blc_665)-(a0_na_750-blc_750)).toFixed(3);
+                document.getElementById(data_form[i][8]).value =parseFloat((a0_a_665-blc_665)-(a0_a_750-blc_750)).toFixed(3);
                 var a_na_665= parseFloat(document.getElementById(data_form[i][7]).value);
                 var a_a_665= parseFloat(document.getElementById(data_form[i][8]).value);
-                document.getElementById(data_form[i][9]).value = 27.7*(a_na_665 - a_a_665)*(10/(v*5));
-                document.getElementById(data_form[i][10]).value =(27.7*((1.7*a_a_665)-a_na_665)*10)/(v*5);
+                document.getElementById(data_form[i][9]).value =parseFloat(27.7*(a_na_665 - a_a_665)*(10/(v*5))).toFixed(2);
+                document.getElementById(data_form[i][10]).value =parseFloat((27.7*((1.7*a_a_665)-a_na_665)*10)/(v*5)).toFixed(2);
             }
             break;
         case "dbo_avec_dilution":
@@ -224,27 +230,27 @@ function myFunction()
 
                 if(c1>0)
                 {
-                    document.getElementById(data_form[i][4]).value= c1/3;
-                    document.getElementById(data_form[i][5]).value= c1-c2;
-                    document.getElementById(data_form[i][6]).value= 2*(c1/3);
+                    document.getElementById(data_form[i][4]).value=parseFloat(c1/3).toFixed(2);
+                    document.getElementById(data_form[i][5]).value= parseFloat(c1-c2).toFixed(2);
+                    document.getElementById(data_form[i][6]).value= parseFloat(2*(c1/3)).toFixed(2);
 
                 }
                 if(vt>0)
                 {
-                    document.getElementById(data_form[i][10]).value= vt-ve;
-                    document.getElementById(data_form[i][11]).value= vt/ve;
-                    document.getElementById(data_form[i][12]).value=(vt-ve)/vt;
+                    document.getElementById(data_form[i][10]).value= parseFloat(vt-ve).toFixed(1);
+                    document.getElementById(data_form[i][11]).value= parseFloat(vt/ve).toFixed(0);
+                    document.getElementById(data_form[i][12]).value=parseFloat((vt-ve)/vt).toFixed(3);
                 }
 
 
                 if(c3>0)
                 {
-                    document.getElementById(data_form[i][7]).value= c3-c4;
+                    document.getElementById(data_form[i][7]).value= parseFloat(c3-c4).toFixed(2);
                     var c1_c2= parseFloat(document.getElementById(data_form[i][5]).value);
                     var vt_ve_vt= parseFloat(document.getElementById(data_form[i][12]).value);
                     var c3_c4= parseFloat(document.getElementById(data_form[i][7]).value);
                     var vt_par_ve= parseFloat(document.getElementById(data_form[i][11]).value);
-                    document.getElementById(data_form[i][13]).value= (c1_c2-vt_ve_vt*c3_c4)*vt_par_ve;
+                    document.getElementById(data_form[i][13]).value= parseFloat((c1_c2-vt_ve_vt*c3_c4)*vt_par_ve).toFixed(0);
                     var c1_par_3=parseFloat(document.getElementById(data_form[i][4]).value)
                     if(c1_par_3 < c1_c2)
                     {
@@ -286,20 +292,20 @@ function myFunction()
                 var m1_o2t5= parseFloat(document.getElementById(data_form[i][1]).value);
                 if(m1_o2t0 > 0)
                 {
-                    document.getElementById(data_form[i][2]).value= m1_o2t0 - m1_o2t5;
+                    document.getElementById(data_form[i][2]).value= parseFloat(m1_o2t0 - m1_o2t5).toFixed(2);
                 }
                 var m2_o2t0= parseFloat(document.getElementById(data_form[i][3]).value);
                 var m2_o2t5= parseFloat(document.getElementById(data_form[i][4]).value);
                 if(m2_o2t0 > 0)
                 {
-                    document.getElementById(data_form[i][5]).value= m2_o2t0 - m2_o2t5;
+                    document.getElementById(data_form[i][5]).value= parseFloat(m2_o2t0 - m2_o2t5).toFixed(2);
                 }
                 var dbo1= parseFloat(document.getElementById(data_form[i][2]).value);
                 var dbo2=parseFloat(document.getElementById(data_form[i][5]).value);
                 var val=((dbo1-dbo2)*100)/(0.5*(dbo1+dbo2));
                 val=Math.abs(val);
-                document.getElementById(data_form[i][6]).value= val;
-                document.getElementById(data_form[i][8]).value= 3.2678*4;
+                document.getElementById(data_form[i][6]).value= parseFloat(val).toFixed(2);
+                document.getElementById(data_form[i][8]).value= parseFloat(3.2678*4).toFixed(2);
                 var r_experimental= parseFloat(document.getElementById(data_form[i][6]).value);
                 var r_théorique= parseFloat(document.getElementById(data_form[i][7]).value);
                 var limite= parseFloat(document.getElementById(data_form[i][8]).value);
@@ -323,9 +329,9 @@ function myFunction()
                 var a0_630= parseFloat(document.getElementById(data_form[i][6]).value);
                 var a0_430= parseFloat(document.getElementById(data_form[i][7]).value);
                 var a0_410= parseFloat(document.getElementById(data_form[i][8]).value);
-                document.getElementById(data_form[i][9]).value= (v_solvant/(v_eau*parcour))*(11.64*(a0_663 - a0_750)-2.16*(a0_645-a0_750)+0.1*(a0_630-a0_750))*((59+137.6*Math.log((a0_430-a0_750)/(a0_410-a0_750)))/100)
+                document.getElementById(data_form[i][9]).value= parseFloat((v_solvant/(v_eau*parcour))*(11.64*(a0_663 - a0_750)-2.16*(a0_645-a0_750)+0.1*(a0_630-a0_750))*((59+137.6*Math.log((a0_430-a0_750)/(a0_410-a0_750)))/100)).toFixed(2)
                 var ca=  parseFloat(document.getElementById(data_form[i][9]).value);
-                document.getElementById(data_form[i][10]).value=(v_solvant/(v_eau*parcour))*(11.64*(a0_663-a0_750)-2.16*(a0_645-a0_750)+0.1*(a0_630-a0_750))-ca;
+                document.getElementById(data_form[i][10]).value=parseFloat((v_solvant/(v_eau*parcour))*(11.64*(a0_663-a0_750)-2.16*(a0_645-a0_750)+0.1*(a0_630-a0_750))-ca).toFixed(2);
 
             }
             break;
@@ -337,13 +343,13 @@ function myFunction()
                 var v1= parseFloat(document.getElementById(data_form[i][0]).value);
                 var v2= parseFloat(document.getElementById(data_form[i][1]).value);
                 var v0= parseFloat(document.getElementById(data_form[i][2]).value);
-                document.getElementById(data_form[i][3]).value = ((32*v2*c*(v0/(v0-3)))/(4*v1));
+                document.getElementById(data_form[i][3]).value = parseFloat(((32*v2*c*(v0/(v0-3)))/(4*v1))).toFixed(2);
 
             }
             break;
         case "sabm":
-            var concentration= [0,0.1,0.4,1,2,4];
-            var absorbance= [0,0.043,0.196,0.56,1.112,1.904];
+            var concentration= {{array_concentration|safe}};
+            var absorbance= {{array_absorbance|safe}};
 
             for(var i=0;i<nb_echantillon;i++)
             {
@@ -358,13 +364,13 @@ function myFunction()
                 else
                 {
                     val = val*facteur/epaisseur;
-                    document.getElementById(data_form[i][3]).value = val ;
+                    document.getElementById(data_form[i][3]).value = parseFloat(val).toFixed(2) ;
                 }
             }
             break;
         case "silicate":
-            var concentration= [0,0.1,0.5,1,2,5];
-            var absorbance= [0,0.034,0.2,0.422,0.793,1.931];
+            var concentration= {{array_concentration|safe}};
+            var absorbance= {{array_absorbance|safe}};
 
             for(var i=0;i<nb_echantillon;i++)
             {
@@ -377,15 +383,15 @@ function myFunction()
                 }
                 else
                 {
-                    document.getElementById(data_form[i][2]).value = val*facteur;
+                    document.getElementById(data_form[i][2]).value = parseFloat(val*facteur).toFixed(2);
                 }
 
 
             }
             break;
         case "silice ifremer":
-            var concentration= [0,0.4,0.5,1,5,10];
-            var absorbance= [0,0.006,0.019,0.04,0.085,0.125];
+            var concentration= {{array_concentration|safe}};
+            var absorbance= {{array_absorbance|safe}};
             for(var i=0;i<nb_echantillon;i++)
             {
                 var a= parseFloat(document.getElementById(data_form[i][0]).value);
@@ -397,15 +403,15 @@ function myFunction()
                 }
                 else
                 {
-                    document.getElementById(data_form[i][2]).value = val*facteur;
+                    document.getElementById(data_form[i][2]).value = parseFloat(val*facteur).toFixed(2);
                 }
 
 
             }
             break;
         case "silice" :
-            var concentration= [0,0.5,1,5,10,20];
-            var absorbance= [0,0.039,0.101,0.422,0.791,1.632];
+            var concentration= {{array_concentration|safe}};
+            var absorbance= {{array_absorbance|safe}};
             for(var i=0;i<nb_echantillon;i++)
             {
                 var a= parseFloat(document.getElementById(data_form[i][0]).value);
@@ -417,7 +423,7 @@ function myFunction()
                 }
                 else
                 {
-                    document.getElementById(data_form[i][2]).value = val*facteur;
+                    document.getElementById(data_form[i][2]).value = parseFloat(val*facteur).toFixed(2);
                 }
 
 

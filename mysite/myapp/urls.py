@@ -5,11 +5,13 @@ urlpatterns=[
     path('',views.connexion,name='myapp_accueil'),
     path('logout/',views.deconnexion,name='myapp_logout'),
     path('import/', views.import_data,name='myapp_import'),
-    path('test/', views.test, name='myapp_test'),
+    path('index/paillasse', views.index_paillasse, name='myapp_index'),
+    path('view/paillasse/<int:id_feuille_paillasse>', views.view_paillasse, name='myapp_view_paillasse'),
     path('creation_paillasse/', views.creation_paillasse, name='myapp_creation_paillasse'),
     path('choix/', views.choix_analyse, name='myapp_choix'),
     path('externe_data/', views.externe_data_feuille_calcul, name='myapp_externe_data'),
     path('feuille_calcul/', views.feuille_calcul_data, name='myapp_calcul'),
     path('export/<int:id_feuille_calcul>', views.export_analyse, name='export_analyse'),
-
+    path('etalonnage/',views.fix_etalonnage,name='myapp_etalonnage'),
+    path('test/',views.test,name='myapp_test')
 ]

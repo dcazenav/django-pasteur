@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<table class="table">
+<thead>
+<tr>
+    <th>N° Feuille de calcul</th>
+    <th>Type d'analyse</th>
+    <th>Date création</th>
+</tr>
+</thead>
+<tbody>
+{% for clc in feuille_calcul %}
+<tr>
+    <td> {{clc.id}}</td>
+    <td>  {{clc.type_analyse.nom}}  </td>
+    <td> {{clc.date_creation}}</td>
+    <td><a href="{% url 'export_analyse' id_feuille_calcul=clc.id %}">  Export </a> </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+</body>
+</html>

@@ -25,7 +25,7 @@ class Feuille_calculForm(forms.ModelForm):
 
     class Meta:
         model = Feuille_calcul
-        exclude = ['feuille_paillasse','type_analyse']
+        exclude = ['feuille_paillasse','type_analyse','etalonnage']
         widgets = {
             'date_analyse': DateInput(),
             'heure_mise_sous_essai':TimeInput(),

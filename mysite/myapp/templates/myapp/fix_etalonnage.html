@@ -1,0 +1,152 @@
+{% extends 'myapp/base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% block content %}
+<div class="row">
+    <div class="col-lg-5">
+    <form method="post" action="">
+           {% csrf_token %}
+           {{ formset.management_form }}
+           <table>
+            {% for form in formset.forms %}
+              {% if forloop.first %}
+              <thead><tr>
+                {% for field in form.visible_fields %}
+                <th>{{ field.label|capfirst }}</th>
+                {% endfor %}
+              </tr></thead>
+              {% endif %}
+              <tr >
+              {% for field in form.visible_fields %}
+                <td>
+                {# Include the hidden fields in the form #}
+                {% if forloop.first %}
+                  {% for hidden in form.hidden_fields %}
+                  {{ hidden }}
+                  {% endfor %}
+                {% endif %}
+                  {{ field.errors.as_ul }}
+                  {{ field }}
+                </td>
+              {% endfor %}
+              </tr>
+            {% endfor %}
+            </table>
+        <br/>
+            <button onclick= start_graph() type="button">Générer graphique</button>
+            <input name="valider" type="submit" value="Valider">
+            <input id="verifEtalonnage" name="etalonnage" type="text" readonly="true">
+
+        </form>
+    </div>
+    <div class="col-lg-offset-2 col-lg-5">
+          <div id="container" style="height: 400px; margin: 0 auto"></div>
+    </div>
+</div>
+{%endblock%}
+
+{%block javascripts %}
+{{ block.super }}
+<script src="{% static 'myapp/app.js' %}"></script>
+<script src="https://code.highcharts.com/highcharts.src.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+<script>
+function creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentration_absorbance,info)
+{
+    Highcharts.chart('container', {
+         xAxis: {
+        min: x_min,
+        max: x_max,
+        title:
+        {
+          text:'Concentration'
+        }
+    },
+    yAxis: {
+        min: 0,
+        title:
+        {
+          text:'Absorbance'
+        }
+    },
+    title: {
+        text: 'Scatter plot with regression line'
+    },
+    subtitle: {
+      text: info
+    },
+     exporting: {
+        enabled: true,
+        filename: 'test'
+    },
+    series: [{
+        type: 'line',
+        name: 'Regression Line',
+        data: [[concentrations[0], debut_lr], [concentrations.slice(-1)[0], fin_lr]],
+        marker: {
+            enabled: false
+        },
+        states: {
+            hover: {
+                lineWidth: 0
+            }
+        },
+        enableMouseTracking: false
+    }, {
+        type: 'scatter',
+        name: 'Observations',
+        data: list_concentration_absorbance,
+        marker: {
+            radius: 4
+        }
+    }]
+    });
+}
+  </script>
+<script>
+function start_graph()
+{
+var parametreEtalonnage= {{param_etalonnage|safe}};
+nb_param=parametreEtalonnage.length;
+var data_form=[];
+var list_concentration_absorbance=[];
+var concentrations=[];
+var absorbances=[];
+for(var i=0;i<6;i++)
+{
+    data_form[i]=[];
+    var couple=[];
+    for(var j=0; j< nb_param ; j++)
+    {
+        var nom="id_form-"+i+"-"+parametreEtalonnage[j];
+        data_form[i][j]=nom;
+        var val=parseFloat(document.getElementById(nom).value);
+        couple.push(val);
+        if(j==0)
+            concentrations.push(val);
+        else
+            absorbances.push(val);
+    }
+    list_concentration_absorbance.push(couple);
+}
+//fonction javascriptt situé dans app.js permtant de trouver l'équation de la droite
+var lr = linearRegression(concentrations,absorbances);
+//fonction javascriptt situé dans app.js permtant de trouver le coefficient de correlation a partir des concentations et absorbances
+var cor = pearsonCorrelation(concentrations,absorbances);
+if(cor<0.99)
+    {document.getElementById("verifEtalonnage").value="Etalonnage incorrecte";}
+else
+    {document.getElementById("verifEtalonnage").value="Etalonnage correcte";}
+
+x_min=concentrations[0];
+x_max=concentrations.slice(-1)[0];
+//slice(-1)[0] retourne le dernier élément de la liste
+var debut_lr=lr.a*x_min + lr.b;
+var fin_lr=lr.a*x_max + lr.b;
+var info="y = " + parseFloat(lr.a).toFixed(3) + "x + " +  + parseFloat(lr.b).toFixed(3)+"<br/>R²= "+parseFloat(Math.pow(cor,2)).toFixed(4);
+creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentration_absorbance,info);
+}
+</script>
+
+{% endblock %}
