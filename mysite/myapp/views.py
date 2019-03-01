@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .forms import ConnexionForm,ImportForm,Feuille_paillasseForm,Feuille_calculForm
+from .forms import ConnexionForm,ImportForm,Feuille_calculForm
 from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
@@ -55,6 +55,7 @@ def view_paillasse(request,id_feuille_paillasse):
 def import_data(request):
     if request.method == 'POST':
         paillasse_data = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
+        fullname=request.FILES['file'].name
         dico1 = []
         dico2 = {}
         container_type = []
@@ -72,30 +73,28 @@ def import_data(request):
             for tp in tmp_type:
                 if tp in cle:
                     container_type.append(tp)
-
+        request.session['fullname'] = fullname
         request.session['type_analyses'] = container_type
         request.session['type_analyses_echantillon']= dico1
-
         return redirect(creation_paillasse)
-
     else:
         form = ImportForm()
 
-    return render(request, 'myapp/import_data.html',{'form': form} )
+    return render(request, 'myapp/import_data.html',{'form': form})
 
 
 def creation_paillasse(request):
-
-    form = Feuille_paillasseForm(request.POST)
-    profil=Profil.objects.filter(user=request.user)
-    if request.method == "POST":
-        if form.is_valid():
-            paillasse,created = Feuille_paillasse.objects.get_or_create(profil=profil[0],numero_paillasse=form.cleaned_data['numero_paillasse'],poste='poste')
+    if 'fullname' in request.session:
+        profil = Profil.objects.filter(user=request.user)
+        fullname=request.session['fullname']
+        les_postes=["CHIM1","IKMNO4","SABM","SILICE","OXYGENE"]
+        if request.method == "POST":
+            poste=request.POST['poste']
+            paillasse, created = Feuille_paillasse.objects.get_or_create(profil=profil[0], numero_paillasse=fullname,poste=poste)
             request.session['paillasse_id'] = paillasse.id
             return redirect(choix_analyse)
 
-    return render(request, 'myapp/paillasse.html', {'form': form} )
-
+        return render(request, 'myapp/paillasse.html',{'les_postes':les_postes})
 
 def choix_analyse(request):
 
@@ -159,6 +158,8 @@ def feuille_calcul_data(request):
     nb_echantillon=0
     array_concentration=[]
     array_absorbance=[]
+    parametre_etalonnage=""
+    concentration_and_absorbance = {}
     static_name_fig=""
     if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
         type_analyses_echantillon = request.session['type_analyses_echantillon']
@@ -198,6 +199,9 @@ def feuille_calcul_data(request):
                 array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
         #création du graphique d'absorbance
         if len(array_concentration) !=0 and len(array_absorbance)!=0:
+            for i in range(len(array_concentration)):
+                concentration_and_absorbance[array_concentration[i]] = array_absorbance[i]
+            parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
             try:
                 os.makedirs(path)
             except OSError as e:
@@ -212,11 +216,15 @@ def feuille_calcul_data(request):
             m, c = np.linalg.lstsq(A, y, rcond=None)[0]
             #coeeficient de corrélation
             cor = np.corrcoef(x, y)[-1, 0]
-            plt.plot(x, y, 'o', label='Observations', markersize=10)
-            plt.plot(x, m * x + c, 'r', label='regression line')
-            plt.xlabel("Concentration")
-            plt.ylabel("Absorbance")
-            info = "Y= " + str(round(m, 4)) + "x" + "+" + str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
+            plt.plot(x, y, 'kD', label='Observations', markersize=7)
+            plt.plot(x, m * x + c, 'b', label='regression line')
+            plt.xlabel(parametre_etalonnage[0])
+            plt.ylabel(parametre_etalonnage[1])
+            info = "Y= " + str(round(m, 4)) + "x"
+            if c > 0:
+                info = info + "+" + str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
+            else:
+                info = info +" "+ str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
             plt.suptitle(info, fontsize=12)
             plt.legend()
             plt.savefig(nom_fig)
@@ -308,7 +316,9 @@ def feuille_calcul_data(request):
                                                            'parametre_interne':param_interne_analyse,'choix': choix,
                                                            'feuille_calcul':feuille_calcul[0],'array_concentration':array_concentration,
                                                            'array_absorbance':array_absorbance,
-                                                           'static_name_fig':static_name_fig
+                                                           'static_name_fig':static_name_fig,
+                                                           'parametre_etalonnage':parametre_etalonnage,
+                                                           'concentration_and_absorbance':concentration_and_absorbance
                                                            })
 
 
@@ -316,70 +326,108 @@ def export_analyse(request,id_feuille_calcul):
 
     if request.method == 'POST':
         feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
+        profil=feuille_calcul[0].feuille_paillasse.profil
         param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
         liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
         feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
             *param_externe_analyse)
         feuille_calcul_trie = feuille_calcul_trie[0]
+
+        filename=profil.user.username+"_"+feuille_calcul[0].feuille_paillasse.numero_paillasse+"_"+feuille_calcul[0].type_analyse.nom
         dico = {}
         dico2= {}
         # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
         liste_param_interne = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
         # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
         param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',flat=True)
+        parametre_etalonnage=""
+        concentration_and_absorbance = {}
         # l'opérateur * permet à la fonction values_list d'interpréter un array
         liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
         for cpt in range(len(param_externe_analyse)):
             dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
             dico2[liste_param_externe[cpt]] = feuille_calcul_trie[cpt]
         dico["N° feuille paillasse"]=feuille_calcul[0].feuille_paillasse.numero_paillasse
-        dico["Analyse réalisé par"]=feuille_calcul[0].feuille_paillasse.profil.user.username
+        dico["Analyse réalisé par"]=profil.user.username
         dico2["N° feuille paillasse"] = feuille_calcul[0].feuille_paillasse.numero_paillasse
-        dico2["Analyse réalisé par"] = feuille_calcul[0].feuille_paillasse.profil.user.username
+        dico2["Analyse réalisé par"] = profil.user.username
 
 
         path = ""
         if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
-            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+request.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
+            parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
+            parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True)
+            les_etalonnages=Etalonnage.objects.filter(profil=profil,type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)
+            for etalonnage in les_etalonnages:
+                concentration_and_absorbance[etalonnage[0]] = etalonnage[1]
 
 
         if 'XLS' in request.POST:
             response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition'] = 'attachment; filename="analyse.xls"'
+            response['Content-Disposition'] = 'attachment; filename="'+filename +'.xls"'
             wb = xlwt.Workbook(encoding='utf-8')
             ws = wb.add_sheet('Analyse')
             row_num = 0
-            gras = xlwt.XFStyle()
-            gras.font.bold = True
+
             # Sheet body, remaining rows
-            font_style = xlwt.XFStyle()
-            date_format = xlwt.XFStyle()
-            date_format.num_format_str = 'DD/MM/YY'
-            time_format = xlwt.XFStyle()
-            time_format.num_format_str ='hh:mm'
+            col_width = 256 * 30
+            ws.col(2).width = col_width
+            ws.col(3).width = col_width
+            ws.col(4).width = col_width
+            ws.col(5).width = col_width
+            ws.col(6).width = col_width
+            base_style = xlwt.easyxf("align:wrap on,vert centre,horiz centre;")
+            font_style =  xlwt.easyxf("align:wrap on,vert centre,horiz centre;border: left thin,right thin,top thin,bottom thin")
+            gras_base = xlwt.easyxf("align:wrap on,vert centre,horiz centre ;font: bold on;")
+            gras = xlwt.easyxf("align:wrap on,vert centre,horiz centre ;font: bold on;border: left thin,right thin,top thin,bottom thin")
+            #date_format = xlwt.XFStyle()
+            #date_format.num_format_str = 'DD/MM/YY'
+            date_format=xlwt.easyxf('align: wrap yes,vert centre,horiz centre; pattern: pattern solid,fore-colour light_yellow;', num_format_str='DD/MM/YY')
+            time_format =xlwt.easyxf('align: wrap yes,vert centre,horiz centre; pattern: pattern solid,fore-colour light_yellow;', num_format_str='hh:mm')
+            # xlwt.XFStyle()
+            # time_format.num_format_str ='hh:mm'
 
             tab_date=['date_analyse','date_etalonnage','var4_mest','var1_ntk','var1_dbo_avec_dilution','var1_dbo_sans_dilution','var3_chlorophylle_lorenzen','var1_dco','var2_dco']
             cpt=0
+            num_col=2
             for key,value in dico.items():
                 #obtenir les bon key dans dico2
-                ws.write(row_num, 2,list(dico2)[cpt], gras)
+                if num_col > 6 :
+                    num_col=2
+                ws.write(row_num, num_col,list(dico2)[cpt], gras_base)
+                num_col+=1
                 if key in tab_date:
-                    ws.write(row_num, 3, value, date_format)
+                    ws.write(row_num, num_col, value, date_format)
                 elif key == "heure_mise_sous_essai":
-                    ws.write(row_num, 3, value, time_format)
+                    ws.write(row_num, num_col, value, time_format)
                 else:
-                    ws.write(row_num, 3,value, font_style)
+                    ws.write(row_num, num_col,value, base_style)
+                num_col+=2
                 cpt+=1
-                row_num += 1
+                if num_col > 6:
+                    row_num += 1
 
             row_num += 2
+            cpt = 0
+            for key,value in concentration_and_absorbance.items():
+                if cpt==0:
+                    ws.write(row_num, 2, parametre_etalonnage[0], gras)
+                    ws.write(row_num, 3, parametre_etalonnage[1], gras)
+                    row_num+=1
+                ws.write(row_num,2,key,gras)
+                ws.write(row_num,3,value,font_style)
+                row_num+=1
+                cpt += 1
+
+
             if path != "" :
                 img = Image.open(path).convert("RGB")
                 path_bmp=path.replace("png","bmp")
                 #transforme l'image png en bmp
                 img.save(path_bmp)
-                ws.insert_bitmap(path_bmp, row_num, 2, scale_x=0.5, scale_y=0.8)
-                row_num +=20
+                ws.insert_bitmap(path_bmp, row_num-cpt-1, 5, scale_x=0.7, scale_y=0.7)
+                row_num +=15
 
             for col_num in range(len(liste_param_interne)):
                 ws.write(row_num, col_num+2, liste_param_interne[col_num], gras)
@@ -397,11 +445,14 @@ def export_analyse(request,id_feuille_calcul):
         else:
             # Create a Django response object, and specify content_type as pdf
             response = HttpResponse(content_type='application/pdf')
-            response['Content-Disposition'] = 'attachment; filename="report.pdf"'
+            response['Content-Disposition'] = 'attachment; filename="'+filename+'.pdf"'
             # find the template and render it.
             html = render_to_string('myapp/rendu_analyse_pdf.html',
                                     {'data_externe': dico2,'param_externe_analyse':list(dico2), 'param_interne_analyse': liste_param_interne,
-                                     'valeur_interne_feuille': liste_analyses,'path': path})
+                                     'valeur_interne_feuille': liste_analyses,'path': path,
+                                     'parametre_etalonnage':parametre_etalonnage,
+                                     'concentration_and_absorbance':concentration_and_absorbance
+                                     })
 
             # create a pdf
             pisaStatus = pisa.CreatePDF(
@@ -437,10 +488,10 @@ def fix_etalonnage(request):
                                                 })
         formset = etalonnageFormset(request.POST, request.FILES)
         #la requête dans le queryset permet de créer un ensemble d'étalonnage par profil et analyse
-        if choix =="sabm":
+        if choix == "sabm":
             etalonnageFormset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
                                               queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0]))
-        elif choix=="silicate":
+        elif choix == "silicate":
             etalonnageFormset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],
                                                                                      type_analyse=type_analyse[0]))
@@ -470,23 +521,15 @@ def fix_etalonnage(request):
 
 
 def test(request):
-    #Regression linear #
-    x= np.array([0, 0.1, 0.4, 1,2,4])
-    A= np.vstack([x, np.ones(len(x))]).T
-    y = np.array([0,0.043, 0.196, 0.56, 1.112,1.904])
-    m, c = np.linalg.lstsq(A, y, rcond=None)[0]
-    ###############################
-    #coeficient de correlation
-    cor=np.corrcoef(x, y)[-1,0]
-    plt.plot(x, y, 'o', label='Observations', markersize=10)
-    plt.plot(x, m * x + c, 'r', label='regression line')
-    plt.xlabel("Concentration")
-    plt.ylabel("Absorbance")
-    info="Y= "+str(round(m,4))+"x"+"+"+str(round(c,4))+"\n"+"R²= "+ str(round(pow(cor,2),4))
-    plt.suptitle(info, fontsize=12)
-    plt.legend()
-    plt.savefig('test.png')
-    return render(request,'myapp/test.html',{'m':m,'c':c,'cor':cor} )
+    profil=Profil.objects.filter(user=request.user)
+    feuille_calcul = Feuille_calcul.objects.filter(id=104)
+    concentration_and_absorbance = {}
+    parametre_etalonnage_valeur = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
+    parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom', flat=True)
+    les_etalonnages = Etalonnage.objects.filter(profil=profil[0], type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)
+    for etalonnage in les_etalonnages:
+        concentration_and_absorbance[etalonnage[0]]=etalonnage[1]
+    return render(request,'myapp/test.html',{'les_etalonnages':concentration_and_absorbance})
 
 
 

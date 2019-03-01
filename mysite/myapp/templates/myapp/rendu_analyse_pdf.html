@@ -2,30 +2,46 @@
 <head>
     <title>Liste d'analyses </title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
-
 </head>
 
-  <style>
-     h1 {
-       text-align: center;
-     }
-table, th, td {
-  border: 1px solid black;
-}
-th,td
+<style>
+.analyse h1
 {
-    padding: 5px;
-    text-align: left;
+text-align: center;
+}
+.analyse table,
+.analyse th,
+.analyse td
+{
+border: 1px solid black;
+}
+.analyse th,
+.analyse td
+{
+padding: 5px;
+text-align: left;
+}
+.table_absorbance table
+.table_absorbance th,
+.table_absorbance td
+{
+border: 1px solid black;
+}
+.table_absorbance th,
+{
+width:150px;
+height:50px;
+}
+.table_absorbance td
+{
+height:30px;
+text-align: center;
 }
 
-
-   </style>
- <body>
- {% if path != "" %}
-<img src="{{path}}" alt="My image">
-{%endif%}
- <h1>test</h1>
+</style>
+ <h1 style="text-align: center;">Les résultats </h1>
  <br/>
+
  {% for key,value in data_externe.items %}
  <strong>{{key}} :</strong> {{value}}
  <br/>
@@ -33,7 +49,39 @@ th,td
  <br/>
  <br/>
  <br/>
-   <table>
+{% if path != "" %}
+<table>
+<tr>
+    <td>
+        <table class="table_absorbance">
+            <thead>
+            <tr>
+                {%for param in parametre_etalonnage %}
+                    <th>
+                    {{param}}
+                    </th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {%for key,value in concentration_and_absorbance.items %}
+                <tr>
+                    <td>{{key}} </td><td>{{value}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </td>
+    <td>
+    <img class="image_graphe" src="{{path}}" alt="My image" width="300" height="300">
+    </td>
+</tr>
+</table>
+{%endif%}
+ <br/>
+ <br/>
+ <br/>
+   <table class="analyse">
      <thead>
        <tr>
          {% for elmt in param_interne_analyse %}
@@ -51,5 +99,7 @@ th,td
        {% endfor %}
      </tbody>
    </table>
+
+
  </body>
 </html>

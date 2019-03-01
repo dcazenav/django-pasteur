@@ -1,20 +1,32 @@
 {% extends 'myapp/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-    <h1> Exporter votre feuille de Calcul </h1>
 
 <div class="buttonHolder">
-    <form action="" method="post">
-                {% csrf_token %}
+<h1 class="row">Exportez votre feuille de Calcul </h1>
+    <br/>
+    <br/>
+    <br/>
+    <div class="row">
+        <p class="text-justify">
+        Ici vous avez la possibilité de récupérer toutes les informations relatifs à la feuille de calcul
+        </p>
+    </div>
+    <div class="row">
+        <div class="col-lg-6">
+        <form action="" method="post">
+        {% csrf_token %}
 
         <input type="submit" name="XLS" value="Exporter en XLS" class="btn btn-success "/>
         <input type="submit" name="PDF" value="Exporter en PDF" class="btn btn-success "/>
 
-    </form>
+        </form>
+        </div>
+    </div>
 </div>
 
 
 <style>
-.buttonHolder{ text-align: center; margin-top: 20%; }
+.buttonHolder{ text-align: center; margin-top: 5%;margin-left:10%;}
 </style>
 {% endblock %}

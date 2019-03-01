@@ -1,5 +1,7 @@
 from django import forms
 from .models import *
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Div,Layout,Field
 
 
 class ConnexionForm(forms.Form) :
@@ -10,10 +12,6 @@ class ConnexionForm(forms.Form) :
 class ImportForm(forms.Form):
     file = forms.FileField()
 
-class Feuille_paillasseForm(forms.ModelForm):
-    class Meta:
-        model=Feuille_paillasse
-        fields=('numero_paillasse','poste')
 
 class DateInput(forms.DateInput):
     input_type = 'date'
@@ -45,6 +43,8 @@ class Feuille_calculForm(forms.ModelForm):
             'var10_dco': forms.TextInput(attrs={'id': 'id_dco_4', 'readonly': True})
 
         }
+
+
 
 
 

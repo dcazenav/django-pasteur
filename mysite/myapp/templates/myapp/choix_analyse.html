@@ -1,22 +1,26 @@
 {% extends 'myapp/base.html' %}
     {% block content %}
+<div class="row">
     <h1> Choissisez votre analyse </h1>
-
+</div>
 <div class="buttonHolder">
-
-    <form action="" method=POST>
-     {% csrf_token %}
-    <select name="choix">
-    {% for elmt in les_types %}
-            <option value="{{elmt}}">{{elmt}}</option>
-    {% endfor %}
-    </select>
-    <input type="submit" value="Valider">
-    </form>
+<div class="row">
+    <div class="col-lg-6">
+        <form action="" method=POST>
+         {% csrf_token %}
+        <select name="choix">
+        {% for elmt in les_types %}
+                <option value="{{elmt}}">{{elmt}}</option>
+        {% endfor %}
+        </select>
+        <input type="submit" value="Valider">
+        </form>
+    </div>
+</div>
 </div>
 
 <style>
-.buttonHolder{ text-align: center; margin-top: 20%; }
+.buttonHolder{ text-align: center; margin-top: 10%; }
 </style>
     {% endblock %}
 

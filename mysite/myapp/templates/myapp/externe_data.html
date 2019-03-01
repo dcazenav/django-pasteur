@@ -1,22 +1,31 @@
 {% extends 'myapp/base.html' %}
 {% load crispy_forms_tags %}
 {% block content %}
-
-    <h1> Renseignez les données suivantes </h1>
-
-<div class="buttonHolder">
+<style>
+    .asteriskField {
+    display: none;
+}
+</style>
+<div class="row">
+<h1> Renseignez les données suivantes </h1>
+</div>
+<div class="row">
+<div class="col-lg-6">
     <form action="" method="post">
         {% csrf_token %}
-                {{form | crispy}}
+        <div class="form-row">
+            {%for field in form %}
+            <div class="form-group col-md-6 mb-0">
+                {{field|as_crispy_field}}
+            </div>
+            {% endfor %}
+        </div>
         <input type="submit" name="valider" class="btn btn-success "/>
     </form>
 </div>
+</div>
 
 
-<style>
-.buttonHolder{ text-align: center; margin-top: 20%; }
-
-</style>
 {% endblock %}
 
 

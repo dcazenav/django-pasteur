@@ -2,6 +2,10 @@
 {% load crispy_forms_tags %}
 {% load static %}
 {% block content %}
+
+<h2 class="row">Saisissez votre gamme d'étalonnage </h2>
+<br/>
+<br/>
 <div class="row">
     <div class="col-lg-5">
     <form method="post" action="">
@@ -144,7 +148,11 @@ x_max=concentrations.slice(-1)[0];
 //slice(-1)[0] retourne le dernier élément de la liste
 var debut_lr=lr.a*x_min + lr.b;
 var fin_lr=lr.a*x_max + lr.b;
-var info="y = " + parseFloat(lr.a).toFixed(3) + "x + " +  + parseFloat(lr.b).toFixed(3)+"<br/>R²= "+parseFloat(Math.pow(cor,2)).toFixed(4);
+var info="y = " + parseFloat(lr.a).toFixed(3) + "x";
+if(lr.b > 0)
+    info = info + " + " + parseFloat(lr.b).toFixed(3)+"<br/>R²= "+parseFloat(Math.pow(cor,2)).toFixed(4);
+else
+    info = info + parseFloat(lr.b).toFixed(3)+"<br/>R²= "+parseFloat(Math.pow(cor,2)).toFixed(4);
 creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentration_absorbance,info);
 }
 </script>

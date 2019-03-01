@@ -3,25 +3,89 @@
 {% load static %}
 {% block content %}
 
-    <h1> Entrez vos données</h1>
+ <style>
+ html, body{
+    height:100%;
+    width:100%;
+    padding:0;
+    margin:0;
+}
+.table_absorbance table,
+.table_absorbance th,
+.table_absorbance td
+{
+  border: 1px solid black;
+}
+.table_absorbance th,
+.table_absorbance td
+{
+    padding: 5px;
+    text-align: center;
+    max-width:150px;
+    word-wrap:break-word;
+}
+
+#tab_feuille_calcul table
+{
+    table-layout: fixed;
+    width: 90%;
+    min-width: 400px;
+}
+#tab_feuille_calcul th,
+#tab_feuille_calcul td
+{
+max-width:120px;
+text-align: center;
+word-wrap:break-word;
+}
+</style>
+
+
+<h1 class="row"> Entrez vos données</h1>
 <br/>
 {% if choix in 'silicate,sabm,silice,silice ifremer'%}
+
+
 <div class="row">
 
 <a href="#demo" data-toggle="collapse">Afficher le tableau d'absorbance</a>
 </div>
-<div class="row">
 <div id="demo" class="collapse">
-<img src="{% static static_name_fig %}" alt="My image" height="400" width="500" align="left">
+<div class="row">
+    <div class="col-lg-6">
+        <br/>
+        <br/>
+        <table class="table_absorbance">
+            <thead>
+            <tr>
+                {%for param in parametre_etalonnage %}
+                <th>
+                {{param}}
+                </th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {%for key,value in concentration_and_absorbance.items %}
+            <tr>
+                <td>{{key}} </td><td>{{value}}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="col-lg-6">
+        <img src="{% static static_name_fig %}" alt="My image" height="400">
+    </div>
 </div>
 </div>
 {% endif %}
-<div class="row">
+<div class="row" style="max-width:80%;">
 
    <form method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
-       <table>
+       <table id="tab_feuille_calcul">
         {% for form in formset.forms %}
           {% if forloop.first %}
           <thead><tr>
