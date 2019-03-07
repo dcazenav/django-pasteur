@@ -82,35 +82,37 @@ word-wrap:break-word;
 {% endif %}
 <div class="row" style="max-width:80%;">
 
-   <form method="post" action="">
+   <form  autocomplete="off" method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
-       <table id="tab_feuille_calcul">
-        {% for form in formset.forms %}
-          {% if forloop.first %}
-          <thead><tr>
-            {% for field in form.visible_fields %}
-            <th>{{ field.label|capfirst }}</th>
-            {% endfor %}
-          </tr></thead>
-          {% endif %}
-          <tr >
-          {% for field in form.visible_fields %}
-            <td>
-            {# Include the hidden fields in the form #}
-            {% if forloop.first %}
-              {% for hidden in form.hidden_fields %}
-              {{ hidden }}
+       <div style="overflow:scroll; border:#000000 1px solid; width: 1300px;">
+           <table id="tab_feuille_calcul">
+            {% for form in formset.forms %}
+              {% if forloop.first %}
+              <thead><tr>
+                {% for field in form.visible_fields %}
+                <th>{{ field.label|capfirst }}</th>
+                {% endfor %}
+              </tr></thead>
+              {% endif %}
+              <tr >
+              {% for field in form.visible_fields %}
+                <td>
+                {# Include the hidden fields in the form #}
+                {% if forloop.first %}
+                  {% for hidden in form.hidden_fields %}
+                  {{ hidden }}
+                  {% endfor %}
+                {% endif %}
+                  {{ field.errors.as_ul }}
+                  {{ field }}
+                </td>
               {% endfor %}
-            {% endif %}
-              {{ field.errors.as_ul }}
-              {{ field }}
-            </td>
-          {% endfor %}
-          </tr>
-        {% endfor %}
-        </table>
-        <input name="valider" type="submit" value="Valider Analyses">
+              </tr>
+            {% endfor %}
+            </table>
+       </div>
+        <input name="valider" class="btn btn-primary" type="submit" value="Valider Analyses">
         <button onclick= myFunction()    type="button">Générer résultats</button>
 
     </form>

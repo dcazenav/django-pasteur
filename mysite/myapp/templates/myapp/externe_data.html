@@ -11,7 +11,7 @@
 </div>
 <div class="row">
 <div class="col-lg-6">
-    <form action="" method="post">
+    <form  autocomplete="off" action="" method="post">
         {% csrf_token %}
         <div class="form-row">
             {%for field in form %}
@@ -20,7 +20,7 @@
             </div>
             {% endfor %}
         </div>
-        <input type="submit" name="valider" class="btn btn-success "/>
+        <input type="submit" name="valider" class="btn btn-primary"/>
     </form>
 </div>
 </div>

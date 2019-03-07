@@ -18,6 +18,8 @@ import matplotlib.pyplot as plt
 def connexion(request):
     error = False
     form = ConnexionForm(request.POST)
+    if request.user.is_authenticated:
+        return redirect(import_data)
     if request.method == "POST":
 
         if form.is_valid():
@@ -68,7 +70,7 @@ def import_data(request):
             dico1.append(tmp)
             dico2[ls[5]] = ls[7]
         for cle in dico2.keys():
-            cle=cle.lower()
+            cle = cle.lower()
             tmp_type = Type_analyse.objects.all().values_list('nom',flat=True)
             for tp in tmp_type:
                 if tp in cle:
