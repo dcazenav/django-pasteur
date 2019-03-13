@@ -44,9 +44,10 @@ class Parametre_etalonnage(models.Model):
 
 class Type_analyse(models.Model):
     nom = models.CharField(max_length=100)
-    parametre_interne=models.ManyToManyField(Parametre_interne_analyse)
-    parametre_externe = models.ManyToManyField(Parametre_externe_analyse)
+    parametre_interne=models.ManyToManyField(Parametre_interne_analyse,blank=True)
+    parametre_externe = models.ManyToManyField(Parametre_externe_analyse,blank=True)
     parametre_etalonnage = models.ManyToManyField(Parametre_etalonnage,blank=True)
+
     def __str__(self):
         return self.nom
 
@@ -113,7 +114,7 @@ class Echantillon(models.Model):
 class Analyse(models.Model):
     echantillon=models.ForeignKey(Echantillon,on_delete=models.CASCADE)
     feuille_calcul = models.ForeignKey(Feuille_calcul, on_delete=models.CASCADE)
-    nEchantillon= models.CharField(max_length=60, verbose_name="numero d'echantillon")
+    nEchantillon= models.CharField(max_length=60, verbose_name="N° d'échantillon")
     #kmnoa4
     var1_kmno4 = models.CharField(max_length=60, verbose_name="V0")
     var2_kmno4 = models.CharField(max_length=60, verbose_name="V1")

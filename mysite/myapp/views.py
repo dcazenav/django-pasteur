@@ -17,11 +17,11 @@ import matplotlib.pyplot as plt
 
 def connexion(request):
     error = False
-    form = ConnexionForm(request.POST)
+
     if request.user.is_authenticated:
         return redirect(import_data)
     if request.method == "POST":
-
+        form = ConnexionForm(request.POST)
         if form.is_valid():
             username = form.cleaned_data["username"]
             password = form.cleaned_data["password"]
@@ -31,6 +31,8 @@ def connexion(request):
                 return redirect('myapp_import')
             else: # sinon une erreur sera affichée
                 error = True
+    else:
+        form = ConnexionForm()
 
     return render(request, 'myapp/connexion.html', locals())
 
@@ -60,21 +62,33 @@ def import_data(request):
         fullname=request.FILES['file'].name
         dico1 = []
         dico2 = {}
+        dico3 ={'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
+                'taux de siccité (%)': 'siccite',
+                'matières volatiles sèches': 'mvs',
+                'matières en suspension (filtre whatman': 'mest',
+                'dem. chim. en oxygène': 'dco', 'azote kjeldahl (en n)': 'ntk',
+                'silicates (en mg/l de sio2)': 'silicate',
+                'oxygène dissous % saturation': 'oxygene dissous',
+                'chlorophylle alpha': 'chlorophylle',
+                'agents de surface': 'sabm',
+                'résidu sec à 180°c': 'residu sec',
+                'silice(µmol/l sio2)': 'silice',
+                'dbo5': 'dbo5'}
+
         container_type = []
         for line in paillasse_data:
             ls = line.split(';')
             tmp = []
-            ls[5]=ls[5].lower()
-            tmp.append(ls[1])
-            tmp.append(ls[5])
-            dico1.append(tmp)
-            dico2[ls[5]] = ls[7]
-        for cle in dico2.keys():
-            cle = cle.lower()
-            tmp_type = Type_analyse.objects.all().values_list('nom',flat=True)
-            for tp in tmp_type:
-                if tp in cle:
-                    container_type.append(tp)
+            ls[5] = ls[5].lower()
+            for cle2 in dico3.keys():
+                if cle2 in ls[5]:
+                    tmp.append(ls[1])
+                    tmp.append(dico3[cle2])
+                    dico1.append(tmp)
+                    dico2[ls[5]] = ls[7]
+                    if dico3[cle2] not in container_type:
+                        container_type.append(dico3[cle2])
+
         request.session['fullname'] = fullname
         request.session['type_analyses'] = container_type
         request.session['type_analyses_echantillon']= dico1
@@ -103,10 +117,14 @@ def choix_analyse(request):
     if 'type_analyses' in request.session:
         les_types = request.session['type_analyses']
         if request.method == 'POST':
-            choix=request.POST['choix']
+            choix = request.POST['choix']
+            request.session['choix'] = choix
+            if choix in ["dbo5","chlorophylle"]:
+                return redirect(choix_specifique)
+
             type_analyse = Type_analyse.objects.filter(nom=choix)
-            les_parametres=[]
-            parametres_externe=[]
+            les_parametres = []
+            parametres_externe = []
             param_interne_analyse = type_analyse[0].parametre_interne.all().values_list('nom', flat=True)
             param_externe_analyse = type_analyse[0].parametre_externe.all().values_list('nom', flat=True)
 
@@ -116,7 +134,6 @@ def choix_analyse(request):
                 parametres_externe.append(elmt)
             request.session['les_parametres'] = les_parametres
             request.session['parametres_externe'] = parametres_externe
-            request.session['choix'] = choix
 
 
             return redirect(externe_data_feuille_calcul)
@@ -125,6 +142,45 @@ def choix_analyse(request):
 
     return render(request,'myapp/choix_analyse.html',{'les_types':les_types})
 
+def choix_specifique(request):
+    if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
+        choix = request.session['choix']
+        echantillon = request.session['type_analyses_echantillon']
+        echantillon_specifique=[]
+        choix_multiple=[]
+        echantillon_selected_and_analyse=[]
+        les_parametres = []
+        parametres_externe = []
+
+        if choix =="dbo5":
+            choix_multiple=['dbo avec dilution','dbo sans dilution']
+        if choix == "chlorophylle":
+            choix_multiple=['chlorophylle lorenzen','chlorophylle scor unesco']
+        for elmt in echantillon:
+            if choix in elmt[1]:
+                echantillon_specifique.append(elmt[0])
+        if request.method == 'POST':
+            choix_analyse= request.POST['radio_check']
+            choix_echantillons = request.POST.getlist('checks')
+            for elmt in choix_echantillons:
+                couple = [elmt, choix_analyse]
+                echantillon_selected_and_analyse.append(couple)
+
+            type_analyse = Type_analyse.objects.filter(nom=choix_analyse)
+            param_interne_analyse = type_analyse[0].parametre_interne.all().values_list('nom', flat=True)
+            param_externe_analyse = type_analyse[0].parametre_externe.all().values_list('nom', flat=True)
+
+            for elmt in param_interne_analyse:
+                les_parametres.append(elmt)
+            for elmt in param_externe_analyse:
+                parametres_externe.append(elmt)
+            request.session['les_parametres'] = les_parametres
+            request.session['parametres_externe'] = parametres_externe
+            request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
+            request.session['choix']=choix_analyse
+            return redirect(externe_data_feuille_calcul)
+
+        return render(request,'myapp/choix_specifique.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
 
 
 def externe_data_feuille_calcul(request):
@@ -140,6 +196,7 @@ def externe_data_feuille_calcul(request):
                                                )
         form = feuille_calculForm(request.POST, request.FILES)
         if request.method == "POST":
+            form = feuille_calculForm(request.POST, request.FILES)
             if form.is_valid():
                 feuille_calcul = form.save(commit=False)
                 feuille_calcul.feuille_paillasse=paillasse[0]
@@ -150,13 +207,15 @@ def externe_data_feuille_calcul(request):
                     return redirect(fix_etalonnage)
                 else:
                     return redirect(feuille_calcul_data)
-
+        else:
+            form = feuille_calculForm()
         return render(request, 'myapp/externe_data.html',{'form': form})
 
 
 def feuille_calcul_data(request):
 
     num_echantillon=[]
+    num_echantillon2=[]
     nb_echantillon=0
     array_concentration=[]
     array_absorbance=[]
@@ -172,34 +231,93 @@ def feuille_calcul_data(request):
         nom_user= request.user.username
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp"+"\\"+nom_user
         static_name_fig="myapp/"+nom_user
+
+        for nEchantillon in type_analyses_echantillon:
+            if choix in nEchantillon[1]:
+                num_echantillon.append(nEchantillon[0])
+                #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
+                Echantillon.objects.get_or_create(numero=nEchantillon[0])
+                nb_echantillon+=1
+
         if choix == "kmno4":
-            num_echantillon.insert(0, "resorcinol")
-            Echantillon.objects.get_or_create(numero="resorcinol")
-            nb_echantillon += 1
+            for i in range(len(num_echantillon)):
+                if i==0:
+                    num_echantillon2.append("resorcinol")
+                    num_echantillon2.append("BLANC")
+                    Echantillon.objects.get_or_create(numero="resorcinol")
+                    Echantillon.objects.get_or_create(numero="BLANC")
+                    nb_echantillon += 2
+                num_echantillon2.append(num_echantillon[i])
+        elif choix=="mest" or choix == "dbo avec dilution":
+            for i in range(len(num_echantillon)):
+                if i == 0:
+                    num_echantillon2.append("CTRL")
+                    num_echantillon2.append("BLANC")
+                    Echantillon.objects.get_or_create(numero="CTRL")
+                    Echantillon.objects.get_or_create(numero="BLANC")
+                    nb_echantillon += 2
+                num_echantillon2.append(num_echantillon[i])
+        elif choix == "dco":
+            for i in range(len(num_echantillon)):
+                if i == 0:
+                    num_echantillon2.append("CTRL")
+                    Echantillon.objects.get_or_create(numero="CTRL")
+                    nb_echantillon += 1
+                num_echantillon2.append(num_echantillon[i])
+        elif choix == "ntk":
+            for i in range(len(num_echantillon)):
+                if i == 0:
+                    num_echantillon2.append("nh4cl")
+                    num_echantillon2.append("Glycine")
+                    Echantillon.objects.get_or_create(numero="nh4cl")
+                    Echantillon.objects.get_or_create(numero="Glycine")
+                    nb_echantillon += 2
+                num_echantillon2.append(num_echantillon[i])
 
-        if choix == "sabm":
+        elif choix == "sabm":
             set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
             for etalonnage in set_etalonnage:
-                array_concentration.append(float((etalonnage.c_lauryl).replace(',','.')))
-                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+                array_concentration.append(float(etalonnage.c_lauryl.replace(',','.')))
+                array_absorbance.append(float(etalonnage.absorbance.replace(',','.')))
 
-        if choix == "silice":
-            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
-            for etalonnage in set_etalonnage:
-                array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
-                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+            for i in range(len(num_echantillon)):
+                if i == 0:
+                    num_echantillon2.append("BLANC")
+                    num_echantillon2.append("LQ")
+                    num_echantillon2.append("CTRL")
+                    Echantillon.objects.get_or_create(numero="BLANC")
+                    Echantillon.objects.get_or_create(numero="LQ")
+                    Echantillon.objects.get_or_create(numero="CTRL")
+                nb_echantillon += 3
+                num_echantillon2.append(num_echantillon[i])
 
-        if choix == "silice ifremer":
+        elif choix == "silice" or choix == "silicate" :
             set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
-            for etalonnage in set_etalonnage:
-                array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
-                array_absorbance.append(float(etalonnage.absorbance))
-        if choix == "silicate":
-            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)
-            for etalonnage in set_etalonnage:
-                array_concentration.append(float((etalonnage.c_mg).replace(',','.')))
-                array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
-        #création du graphique d'absorbance
+            if choix =="silice":
+                for etalonnage in set_etalonnage:
+                    array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
+                    array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+            else:
+                for etalonnage in set_etalonnage:
+                    array_concentration.append(float((etalonnage.c_mg).replace(',', '.')))
+                    array_absorbance.append(float((etalonnage.absorbance).replace(',', '.')))
+                    
+            for i in range(len(num_echantillon)):
+                if i % 10 == 0:
+                    num_echantillon2.append("BLANC")
+                    num_echantillon2.append("LQ")
+                    num_echantillon2.append("CTRL")
+                    if i == 0:
+                        Echantillon.objects.get_or_create(numero="BLANC")
+                        Echantillon.objects.get_or_create(numero="LQ")
+                        Echantillon.objects.get_or_create(numero="CTRL")
+                    nb_echantillon += 3
+
+                num_echantillon2.append(num_echantillon[i])
+        else:
+            num_echantillon2 = num_echantillon
+
+        # création du graphique d'absorbance
         if len(array_concentration) !=0 and len(array_absorbance)!=0:
             for i in range(len(array_concentration)):
                 concentration_and_absorbance[array_concentration[i]] = array_absorbance[i]
@@ -211,12 +329,12 @@ def feuille_calcul_data(request):
                     raise
             nom_fig = path+"\\"+feuille_calcul[0].type_analyse.nom+".png"
             static_name_fig=static_name_fig+"/"+ feuille_calcul[0].type_analyse.nom+".png"
-            #regression linéaire
+            # regression linéaire
             x = np.array(array_concentration)
             A = np.vstack([x, np.ones(len(x))]).T
             y = np.array(array_absorbance)
             m, c = np.linalg.lstsq(A, y, rcond=None)[0]
-            #coeeficient de corrélation
+            # coeeficient de corrélation
             cor = np.corrcoef(x, y)[-1, 0]
             plt.plot(x, y, 'kD', label='Observations', markersize=7)
             plt.plot(x, m * x + c, 'b', label='regression line')
@@ -233,15 +351,6 @@ def feuille_calcul_data(request):
             #on efface le graphe pour ne pas réécrire dessus
             plt.clf()
 
-
-
-
-        for nEchantillon in type_analyses_echantillon:
-            if choix in nEchantillon[1]:
-                num_echantillon.append(nEchantillon[0])
-                #Renvoie un tuple (objet, créé) où objet est l’objet chargé ou créé et créé est une valeur booléenne indiquant si un nouvel objet a été créé.
-                Echantillon.objects.get_or_create(numero=nEchantillon[0])
-                nb_echantillon+=1
         analyseFormset = modelformset_factory(Analyse,
                                               fields=param_interne_analyse,
                                               max_num=nb_echantillon,
@@ -292,14 +401,14 @@ def feuille_calcul_data(request):
                                                     'var11_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
 
                                                 })
-        formset = analyseFormset(request.POST, request.FILES)
 
 
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
-        analyseFormset= analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon],queryset=Analyse.objects.none())
+        formset = analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon2],queryset=Analyse.objects.none())
 
         if request.method == 'POST':
-                if formset.is_valid():
+            formset = analyseFormset(request.POST, request.FILES)
+            if formset.is_valid():
                     for form in formset:
                         numero = form.cleaned_data.get('nEchantillon')
                         analyse=form.save(commit=False)
@@ -310,11 +419,18 @@ def feuille_calcul_data(request):
                             analyse.save()
                     return redirect(export_analyse,id_feuille_calcul=request.session['feuille_calcul_id'])
 
+            else:
+                return render(request, 'myapp/feuille_calcul.html',
+                              {'formset': formset, 'nb_echantillon': nb_echantillon,
+                               'parametre_interne': param_interne_analyse, 'choix': choix,
+                               'feuille_calcul': feuille_calcul[0], 'array_concentration': array_concentration,
+                               'array_absorbance': array_absorbance,
+                               'static_name_fig': static_name_fig,
+                               'parametre_etalonnage': parametre_etalonnage,
+                               'concentration_and_absorbance': concentration_and_absorbance
+                               })
 
-                else:
-                    messages.error(request, "Formset not Valid")
-
-        return render(request,'myapp/feuille_calcul.html',{'formset': analyseFormset,'nb_echantillon':nb_echantillon,
+        return render(request,'myapp/feuille_calcul.html',{'formset': formset,'nb_echantillon':nb_echantillon,
                                                            'parametre_interne':param_interne_analyse,'choix': choix,
                                                            'feuille_calcul':feuille_calcul[0],'array_concentration':array_concentration,
                                                            'array_absorbance':array_absorbance,
@@ -521,17 +637,6 @@ def fix_etalonnage(request):
 
 
 
-
-def test(request):
-    profil=Profil.objects.filter(user=request.user)
-    feuille_calcul = Feuille_calcul.objects.filter(id=104)
-    concentration_and_absorbance = {}
-    parametre_etalonnage_valeur = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
-    parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom', flat=True)
-    les_etalonnages = Etalonnage.objects.filter(profil=profil[0], type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)
-    for etalonnage in les_etalonnages:
-        concentration_and_absorbance[etalonnage[0]]=etalonnage[1]
-    return render(request,'myapp/test.html',{'les_etalonnages':concentration_and_absorbance})
 
 
 

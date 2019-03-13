@@ -104,7 +104,6 @@ word-wrap:break-word;
                   {{ hidden }}
                   {% endfor %}
                 {% endif %}
-                  {{ field.errors.as_ul }}
                   {{ field }}
                 </td>
               {% endfor %}
@@ -284,7 +283,7 @@ function myFunction()
                 document.getElementById(data_form[i][10]).value =parseFloat((27.7*((1.7*a_a_665)-a_na_665)*10)/(v*5)).toFixed(2);
             }
             break;
-        case "dbo_avec_dilution":
+        case "dbo avec dilution":
             for(var i=0;i<nb_echantillon;i++)
             {
                 var c3=  parseFloat(document.getElementById(data_form[i][0]).value);
@@ -351,7 +350,7 @@ function myFunction()
                 }
             }
             break;
-        case "dbo_sans_dilution":
+        case "dbo sans dilution":
             for(var i=0;i<nb_echantillon;i++)
             {
                 var m1_o2t0= parseFloat(document.getElementById(data_form[i][0]).value);
@@ -382,7 +381,7 @@ function myFunction()
 
             }
             break;
-        case "chlorophylle_scor_unesco":
+        case "chlorophylle scor unesco":
 
             for(var i=0;i<nb_echantillon;i++)
             {
@@ -444,26 +443,6 @@ function myFunction()
                 var facteur= parseFloat(document.getElementById(data_form[i][1]).value);
                 var val =forecast(a,concentration,absorbance);
                 if(val> 5)
-                {
-                    document.getElementById(data_form[i][2]).value = "hors gamme";
-                }
-                else
-                {
-                    document.getElementById(data_form[i][2]).value = parseFloat(val*facteur).toFixed(2);
-                }
-
-
-            }
-            break;
-        case "silice ifremer":
-            var concentration= {{array_concentration|safe}};
-            var absorbance= {{array_absorbance|safe}};
-            for(var i=0;i<nb_echantillon;i++)
-            {
-                var a= parseFloat(document.getElementById(data_form[i][0]).value);
-                var facteur= parseFloat(document.getElementById(data_form[i][1]).value);
-                var val =forecast(a,concentration,absorbance);
-                if(val> 1000)
                 {
                     document.getElementById(data_form[i][2]).value = "hors gamme";
                 }
