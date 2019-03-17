@@ -1,4 +1,4 @@
-
+.
 # Created by https://www.gitignore.io/api/django,pycharm
 # Edit at https://www.gitignore.io/?templates=django,pycharm
 
@@ -7,6 +7,7 @@
 *.pot
 *.pyc
 __pycache__/
+.idea/
 local_settings.py
 db.sqlite3
 media
