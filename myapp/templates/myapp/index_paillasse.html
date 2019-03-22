@@ -5,7 +5,6 @@
 <thead>
 <tr>
     <th>N° Feuille de paillasse</th>
-    <th>Poste</th>
     <th>Date création</th>
 </tr>
 </thead>
@@ -13,7 +12,6 @@
 {% for pls in paillasse %}
 <tr>
     <td><a href="{% url 'myapp_view_paillasse' id_feuille_paillasse=pls.id %}"> {{pls.numero_paillasse}}</a></td>
-    <td>  {{pls.poste}}  </td>
     <td> {{pls.date}}</td>
 </tr>
 {% endfor %}

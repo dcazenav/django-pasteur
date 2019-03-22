@@ -16,7 +16,6 @@ class Profil(models.Model):
 class Feuille_paillasse(models.Model):
     profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
     numero_paillasse= models.CharField(max_length=60)
-    poste= models.CharField(max_length=60)
     date= models.DateTimeField(default=timezone.now)
     def __str__(self):
         return self.numero_paillasse

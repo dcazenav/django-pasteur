@@ -5,5 +5,17 @@
     <title>Title</title>
 </head>
 <body>
+<table>
+<tbody>
+{% for elmt1 in nested %}
+   <tr>
+       {%for elmt2 in elmt1%}
+       <td><strong>{{elmt2.0}} :</strong></td>
+       <td>{{elmt2.1}}</td>
+       {% endfor %}
+   </tr>
+{% endfor %}
+</tbody>
+</table>
 </body>
 </html>

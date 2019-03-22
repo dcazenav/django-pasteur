@@ -6,6 +6,7 @@
         <meta name="viewport" content="width=device-width,initial-scale=1">
         <meta name="keywords" content="">
         <meta name="description" content="">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
@@ -19,12 +20,9 @@
 
         <div id="header">
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #ffffff;box-shadow: 0px 2px 8px 0px rgba(50, 50, 50, 0.04);border: none;margin-bottom:0;">
             <div class="container">
             <a class="navbar-brand" href="{% url 'myapp_accueil'%}">MyBenchtop</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-            </button>
             <!-- <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav">
             <li class="nav-item active">
@@ -46,7 +44,6 @@
             </a>
             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
               <a class="dropdown-item" href="{% url 'myapp_index_paillasse'%}">Mes feuilles de paillasses</a>
-              <a class="dropdown-item" href="#">Another action</a>
               <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
             </div>
             </li>
@@ -68,74 +65,177 @@
             </div>
 
 
-              <style>
-                #page {
-                  min-height: 100vh;
-                  display:flex;
-                  flex-direction: column;
+            <style>
+            html, body
+            {
+            height:100%;
+            width:100%;
+            padding:0;
+            margin:0;
+            }
+            #page {
+              min-height: 100vh;
+              display:flex;
+              flex-direction: column;
 
-                }
-                #content{
+            }
+            #content{
 
-                  flex-grow:1;
-                }
-                .footer{
-                    min-height:180px;
-                    max-height: 200px;
-                    background: url('../../static/footer/footer2.jpg') 50% 0 repeat-y fixed;
-                    -webkit-background-size: cover;
-                    background-size: cover;
-                    background-position: center;
-                    color: rgb(0, 0, 0);
-                }
-                .navbar
-                {
-                    padding-top: 20px;
-                }
+              flex-grow:1;
+            }
+            .footer{
+                min-height:auto;
+                max-height: auto;
+                min-width:auto;
+                max-width: auto;
+                background: url('../../static/footer/footer2.jpg') 50% 0 repeat-y fixed;
+                -webkit-background-size: cover;
+                background-size: cover;
+                background-position: center;
+                color: rgb(0, 0, 0);
+            }
+            .navbar
+            {
+                padding-top: 20px;
+            }
 
-                .navbar .navbar-brand
-                {
-                color: #5C5C5C;
-                font-size: 22px;
-                font-weight: bold;
-                letter-spacing: 2px;
-                }
-                .navbar .navbar-nav li a
-                {
-                font-size: 24px;
-                letter-spacing: 1px;
-                }
+            .navbar .navbar-brand
+            {
+            color: #5C5C5C;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            }
+            .navbar .navbar-nav li a
+            {
+            font-size: 24px;
+            letter-spacing: 1px;
+            }
+            #copyright {
 
-              </style>
-              <div class="footer">
+            color: #000000;
+            text-align: center;
+            }
+            #copyright p {
+            color: #000000;
+            }
+            ul {
+    padding:0;
+    list-style: none;
+}
+.footer-social-icons {
+    width: 350px;
+    display:block;
+}
+.social-icon {
+    color: #fff;
+}
+ul.social-icons {
+    margin-top: 10px;
+}
+.social-icons li {
+    vertical-align: top;
+    display: inline;
+    height: 100px;
+}
+.social-icons a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.fa-facebook {
+    padding:10px 14px;
+    -o-transition:.5s;
+    -ms-transition:.5s;
+    -moz-transition:.5s;
+    -webkit-transition:.5s;
+    transition: .5s;
+    background-color: #023047;
+    border-radius: 50%;
+
+}
+.fa-facebook:hover {
+    background-color: #3d5b99;
+}
+
+.fa-linkedin {
+    padding:10px 14px;
+    -o-transition:.5s;
+    -ms-transition:.5s;
+    -moz-transition:.5s;
+    -webkit-transition:.5s;
+    transition: .5s;
+    background-color: #023047;
+    border-radius: 50%;
+
+}
+.fa-linkedin:hover {
+    background-color: #0073a4;
+}
+
+.fa-google {
+    padding:10px 14px;
+    -o-transition:.5s;
+    -ms-transition:.5s;
+    -moz-transition:.5s;
+    -webkit-transition:.5s;
+    transition: .5s;
+    background-color: #023047;
+    border-radius: 50%;
+
+}
+.fa-google:hover {
+    background-color: #dd4b39;
+}
+.fa-youtube {
+    padding:10px 14px;
+    -o-transition:.5s;
+    -ms-transition:.5s;
+    -moz-transition:.5s;
+    -webkit-transition:.5s;
+    transition: .5s;
+    background-color: #023047;
+    border-radius: 50%;
+
+}
+.fa-youtube:hover {
+    background-color: #e64a41;
+}
+
+
+            </style>
+            <div class="footer">
                 <div class="container">
-                  <div class="row">
-                    <div class="col-lg-3 col-lg-offset-1"><h2>Description</h2>
-                    <p>"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.
-
-                    </p>
-                  </div>
-                  <div class="col-lg-3 col-lg-offset-1"> <h2> Liens</h2>
-                    <a href="#"> Lien </a><br/>
-                    <a href="#"> Lien </a><br/>
-                    <a href="#"> Lien </a><br/>
-                    <a href="#"> Lien </a>
-                  </div>
-                  <div class="col-lg-3"><h2> Liens </h2>
-                    <a href="#">Conditions d'utilisations</a><br/>
-                    <a href="#">Données personnelles</a><br/>
-                    <a href="#">Mention légales</a><br/>
-                    <a href="#"> Contacter Nous </a>
-                  </div>
+                    <div class="row">
+                        <div class="offset-md-5">
+                            <div class="footer-social-icons">
+                            <h5>Nous contacter</h5>
+                            <ul class="social-icons">
+                            <li><a href="" class="social-icon"> <i class="fa fa-facebook"></i></a></li>
+                            <li><a href="" class="social-icon"> <i class="fa fa-youtube"></i></a></li>
+                            <li><a href="" class="social-icon"> <i class="fa fa-linkedin"></i></a></li>
+                            <li><a href="" class="social-icon"> <i class="fa fa-google"></i></a></li>
+                            </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
-            {%block javascripts %}
-                <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-                <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
-            {% endblock %}
+                <section id="copyright">
+                    <div class="container">
+                    <div class="row">
+                    <div class="col-md-12 col-sm-12">
+                    <h5>Copyright © Institut Pasteur</h5>
+                    <h6>Réalisé par Regalade Davy</h6>
 
-
+                    </div>
+                    </div>
+                    </div>
+                </section>
+            </div>
       </div>
-      </div>
+    {%block javascripts %}
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+    {% endblock %}
     </body>
 </html>
