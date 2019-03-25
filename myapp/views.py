@@ -503,7 +503,7 @@ def export_analyse(request,id_feuille_calcul):
         # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
         param_interne_analyse = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',flat=True)
         # l'opérateur * permet à la fonction values_list d'interpréter un array
-        liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+        liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)[::-1]
         for cpt in range(len(param_externe_analyse)):
             dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
             entete_data_externe.append(liste_param_externe[cpt])
@@ -522,7 +522,7 @@ def export_analyse(request,id_feuille_calcul):
             path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
             parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
             parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True)
-            les_etalonnages=Etalonnage.objects.filter(profil=profil,type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)
+            les_etalonnages=Etalonnage.objects.filter(profil=profil,type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)[::-1]
             for etalonnage in les_etalonnages:
                 concentration_and_absorbance[etalonnage[0]] = etalonnage[1]
 
