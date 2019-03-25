@@ -480,7 +480,7 @@ def export_analyse(request,id_feuille_calcul):
         entete_data_externe= []
         parametre_etalonnage=""
         concentration_and_absorbance = {}
-        toto=[]
+        info_data_extern_pdf=[]
         codification={
                     "kmno4": "ETE8/01-C",
                     "siccite": "DE/TE8/Ceau 49",
@@ -507,15 +507,15 @@ def export_analyse(request,id_feuille_calcul):
         for cpt in range(len(param_externe_analyse)):
             dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
             entete_data_externe.append(liste_param_externe[cpt])
-            toto.append([liste_param_externe[cpt],feuille_calcul_trie[cpt]])
+            info_data_extern_pdf.append([liste_param_externe[cpt],feuille_calcul_trie[cpt]])
         dico["N° feuille paillasse"]=feuille_calcul[0].feuille_paillasse.numero_paillasse
-        dico["Analyse réalisé par"]=profil.user.username
+        dico["Analyse réalisé par"]=profil.user.first_name+" "+profil.user.last_name
         entete_data_externe.extend(("N° feuille paillasse","Analyse réalisé par"))
-        toto.extend((["N° feuille paillasse",feuille_calcul[0].feuille_paillasse.numero_paillasse],["Analyse réalisé par",profil.user.username]))
+        info_data_extern_pdf.extend((["N° feuille paillasse",feuille_calcul[0].feuille_paillasse.numero_paillasse],["Analyse réalisé par",profil.user.first_name+" "+profil.user.last_name]))
         nested = []
         #array d'array composé de couple de deux array
-        for x in range(0,len(toto) -1,2):
-            nested.append(toto[x:x + 2])
+        for x in range(0,len(info_data_extern_pdf) -1,2):
+            nested.append(info_data_extern_pdf[x:x + 2])
 
         path = ""
         if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
