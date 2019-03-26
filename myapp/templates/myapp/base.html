@@ -8,7 +8,6 @@
         <meta name="description" content="">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
 
         <title>MyBenchtop</title>
@@ -20,36 +19,31 @@
 
         <div id="header">
 
-        <nav class="navbar navbar-expand-sm navbar-light" style="background-color: #ffffff;box-shadow: 0px 2px 8px 0px rgba(50, 50, 50, 0.04);border: none;margin-bottom:0;">
-            <div class="container">
-            <a class="navbar-brand" href="{% url 'myapp_accueil'%}">MyBenchtop</a>
-            <!-- <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
-            <li class="nav-item active">
-            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="#">Features</a>
-            </li>
-            <li class="nav-item">
-            <a class="nav-link" href="#">Pricing</a>
-            </li>
-            </ul>
-            </div> -->
-            {% if user.is_authenticated %}
-            <ul class="navbar-nav">
-             <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Bonjour {{user.first_name}}
-            </a>
-            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-              <a class="dropdown-item" href="{% url 'myapp_index_paillasse'%}">Mes feuilles de paillasses</a>
-              <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
-            </div>
-            </li>
-            </ul>
-            </div>
-            {% endif %}
+        <nav class="navbar navbar-expand-md navbar-light" style="background-color: #ffffff;box-shadow: 0px 2px 8px 0px rgba(50, 50, 50, 0.04);border: none;margin-bottom:0;">
+                <div class="container">
+                <a class="navbar-brand" href="{% url 'myapp_accueil'%}">MyBenchtop</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+                </button>
+                {% if user.is_authenticated %}
+                      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Bonjour {{user.first_name}}
+                            </a>
+                            <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                <a class="dropdown-item" href="{% url 'myapp_index_paillasse'%}">Mes feuilles de paillasses</a>
+                                <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
+                            </div>
+                            </li>
+                        </ul>
+                      </div>
+
+                {% endif %}
+                </div>
+
         </nav>
 
         </div>
@@ -112,129 +106,130 @@
             letter-spacing: 1px;
             }
             #copyright {
-
             color: #000000;
-            text-align: center;
             }
             #copyright p {
             color: #000000;
             }
+
             ul {
-    padding:0;
-    list-style: none;
-}
-.footer-social-icons {
-    width: 350px;
-    display:block;
-}
-.social-icon {
-    color: #fff;
-}
-ul.social-icons {
-    margin-top: 10px;
-}
-.social-icons li {
-    vertical-align: top;
-    display: inline;
-    height: 100px;
-}
-.social-icons a {
-    color: #fff;
-    text-decoration: none;
-}
+            padding:0;
+            list-style: none;
+            }
+            .footer-social-icons {
+            width: 350px;
+            display:block;
+            }
+            .social-icon {
+            color: #fff;
+            }
+            ul.social-icons {
+            margin-top: 10px;
+            }
+            .social-icons li {
+            vertical-align: top;
+            display: inline;
+            height: 100px;
+            }
+            .social-icons a {
+            color: #fff;
+            text-decoration: none;
+            }
 
-.fa-facebook {
-    padding:10px 14px;
-    -o-transition:.5s;
-    -ms-transition:.5s;
-    -moz-transition:.5s;
-    -webkit-transition:.5s;
-    transition: .5s;
-    background-color: #023047;
-    border-radius: 50%;
+            .fa-facebook {
+            padding:10px 14px;
+            -o-transition:.5s;
+            -ms-transition:.5s;
+            -moz-transition:.5s;
+            -webkit-transition:.5s;
+            transition: .5s;
+            background-color: #023047;
+            border-radius: 50%;
 
-}
-.fa-facebook:hover {
-    background-color: #3d5b99;
-}
+            }
+            .fa-facebook:hover {
+            background-color: #3d5b99;
+            }
 
-.fa-linkedin {
-    padding:10px 14px;
-    -o-transition:.5s;
-    -ms-transition:.5s;
-    -moz-transition:.5s;
-    -webkit-transition:.5s;
-    transition: .5s;
-    background-color: #023047;
-    border-radius: 50%;
+            .fa-linkedin {
+            padding:10px 14px;
+            -o-transition:.5s;
+            -ms-transition:.5s;
+            -moz-transition:.5s;
+            -webkit-transition:.5s;
+            transition: .5s;
+            background-color: #023047;
+            border-radius: 50%;
 
-}
-.fa-linkedin:hover {
-    background-color: #0073a4;
-}
+            }
+            .fa-linkedin:hover {
+            background-color: #0073a4;
+            }
 
-.fa-google {
-    padding:10px 14px;
-    -o-transition:.5s;
-    -ms-transition:.5s;
-    -moz-transition:.5s;
-    -webkit-transition:.5s;
-    transition: .5s;
-    background-color: #023047;
-    border-radius: 50%;
+            .fa-google {
+            padding:10px 14px;
+            -o-transition:.5s;
+            -ms-transition:.5s;
+            -moz-transition:.5s;
+            -webkit-transition:.5s;
+            transition: .5s;
+            background-color: #023047;
+            border-radius: 50%;
 
-}
-.fa-google:hover {
-    background-color: #dd4b39;
-}
-.fa-youtube {
-    padding:10px 14px;
-    -o-transition:.5s;
-    -ms-transition:.5s;
-    -moz-transition:.5s;
-    -webkit-transition:.5s;
-    transition: .5s;
-    background-color: #023047;
-    border-radius: 50%;
+            }
+            .fa-google:hover {
+            background-color: #dd4b39;
+            }
+            .fa-youtube {
+            padding:10px 14px;
+            -o-transition:.5s;
+            -ms-transition:.5s;
+            -moz-transition:.5s;
+            -webkit-transition:.5s;
+            transition: .5s;
+            background-color: #023047;
+            border-radius: 50%;
 
-}
-.fa-youtube:hover {
-    background-color: #e64a41;
-}
+            }
+            .fa-youtube:hover {
+            background-color: #e64a41;
+            }
 
 
             </style>
             <div class="footer">
                 <div class="container">
                     <div class="row">
-                        <div class="offset-md-5">
-                            <div class="footer-social-icons">
-                            <h5>Nous contacter</h5>
-                            <ul class="social-icons">
-                            <li><a href="" class="social-icon"> <i class="fa fa-facebook"></i></a></li>
-                            <li><a href="" class="social-icon"> <i class="fa fa-youtube"></i></a></li>
-                            <li><a href="" class="social-icon"> <i class="fa fa-linkedin"></i></a></li>
-                            <li><a href="" class="social-icon"> <i class="fa fa-google"></i></a></li>
-                            </ul>
+                    <div class="offset-md-4 col-md-12 col-sm-12">
+                    <h5>Nous contacter</h5>
+                    <div class="footer-social-icons">
+                    <ul class="social-icons">
+                    <li><a href="" class="social-icon"> <i class="fa fa-facebook"></i></a></li>
+                    <li><a href="" class="social-icon"> <i class="fa fa-youtube"></i></a></li>
+                    <li><a href="" class="social-icon"> <i class="fa fa-linkedin"></i></a></li>
+                    <li><a href="http://web.pasteur-guadeloupe.fr/" class="social-icon"> <i class="fa fa-google"></i></a></li>
+                    </ul>
+                    </div>
+                    </div>
+                    </div>
+                    <br/>
+                    <section id="copyright">
+                        <div class="row">
+                        <div class="offset-md-3 col-md-12 col-sm-12">
+                        <h5>Copyright © Institut Pasteur Guadeloupe</h5>
+                        </div>
+                        </div>
+                        <div class="row">
+                            <div class="offset-md-4 col-md-12 col-sm-12">
+                                <h6>Réalisé par Regalade Davy</h6>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
-                <section id="copyright">
-                    <div class="container">
-                    <div class="row">
-                    <div class="col-md-12 col-sm-12">
-                    <h5>Copyright © Institut Pasteur</h5>
-                    <h6>Réalisé par Regalade Davy</h6>
-
-                    </div>
-                    </div>
-                    </div>
-                </section>
             </div>
       </div>
     {%block javascripts %}
-        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
     {% endblock %}
     </body>
