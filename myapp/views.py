@@ -497,7 +497,7 @@ def export_analyse(request,id_feuille_calcul):
                     "sabm": "ETE8/56-C",
                     "silicate":"ETE8/16-C",
                     "silice":"ETE8/70-C",
-                    "mvs":"DE/TE08/Ceau/91"
+                    "matiere seche et mvs":"DE/TE08/Ceau/91"
         }
         # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
         liste_param_interne = feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True)
