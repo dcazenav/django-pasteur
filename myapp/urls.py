@@ -12,5 +12,6 @@ urlpatterns=[
     path('externe_data/', views.externe_data_feuille_calcul, name='myapp_externe_data'),
     path('feuille_calcul/', views.feuille_calcul_data, name='myapp_calcul'),
     path('export/<int:id_feuille_calcul>', views.export_analyse, name='export_analyse'),
+    path('ajax/', views.ajax_echantillon, name='myapp_ajax'),
     path('etalonnage/',views.fix_etalonnage,name='myapp_etalonnage')
 ]

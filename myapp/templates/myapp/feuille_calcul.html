@@ -83,7 +83,7 @@ word-wrap:break-word;
 {% endif %}
 <div class="row">
 
-   <form  autocomplete="off" method="post" action="">
+   <form  id="form" autocomplete="off" method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
        <div style="overflow:scroll; border:#000000 1px solid;width: 100%;min-width:600px;max-width:1000px;height:auto">
@@ -112,11 +112,27 @@ word-wrap:break-word;
             {% endfor %}
             </table>
        </div>
-        <input name="valider" class="btn btn-primary" type="submit" value="Valider Analyses">
+        <input name="analyse" class="btn btn-primary" type="submit" value="Valider Analyses">
         <button onclick= myFunction()    type="button">Générer résultats</button>
 
     </form>
 </div>
+<br/>
+<form id="form_echantillon" method="post" action=".">
+{% csrf_token %}
+<div class="row">
+<p>
+<a data-toggle="collapse" href="#collapseEchantillon" role="button" aria-expanded="false" aria-controls="collapseEchantillon">
+Ajouter echantillon
+</a>
+</p>
+</div>
+<div class="collapse" id="collapseEchantillon">
+Entrez le numéro de l'échantillon:<br>
+<input id="num_echantillon" type="text" name="echantillon"><br>
+<input name="valider_echantillon" class="btn btn-primary" type="submit" value="Valider">
+</div>
+</form>
 
 
 
@@ -127,6 +143,28 @@ word-wrap:break-word;
 
 {%block javascripts %}
 {{ block.super }}
+<script>
+$(document).on('submit','#form_echantillon',function(e)
+{
+e.preventDefault();
+ var serializedData = $('#form').serialize();
+$.ajax({
+    type:'POST',
+    url: '{% url 'myapp_ajax' %}',
+    data:{
+            ajax: $('#num_echantillon').val(),
+            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+         },
+    success: function()
+    {
+        window.location = window.location.href;
+
+    }
+});
+
+});
+</script>
+
 <script>
 function forecast(x, ky, kx){
    var i=0, nr=0, dr=0,ax=0,ay=0,a=0,b=0;
