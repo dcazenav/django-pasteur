@@ -96,7 +96,7 @@ def import_data(request):
         dico3 ={'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
                 'taux de siccité (%)': 'siccite',
                 'matières volatiles sèches': 'matiere seche et mvs',
-                'matières en suspension (filtre whatman': 'mest',
+                'matières en suspension (filtre what': 'mest',
                 'dem. chim. en oxygène': 'dco',
                 'azote kjeldahl (en n)': 'ntk',
                 'silicates (en mg/l de sio2)': 'silicate',
