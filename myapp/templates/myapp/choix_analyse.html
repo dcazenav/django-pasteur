@@ -1,5 +1,6 @@
 {% extends 'myapp/base.html' %}
-    {% block content %}
+{% block content %}
+
 <div class="row">
     <h1> Choissisez votre analyse </h1>
 </div>
@@ -22,5 +23,12 @@
 <style>
 .buttonHolder{ text-align: center; margin-top: 10%; }
 </style>
-    {% endblock %}
 
+{% endblock %}
+
+{%block javascripts %}
+<script>
+//netoyage de la session pour élimener les données persister dans la feuill de calcul
+localStorage.clear();
+</script>
+{% endblock %}

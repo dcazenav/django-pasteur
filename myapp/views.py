@@ -87,6 +87,14 @@ def view_paillasse(request,id_feuille_paillasse):
 
 
 def import_data(request):
+    key_session=['type_analyses','choix','type_analyses_echantillon','parametres_externe','paillasse_id','feuille_calcul_id','les_parametres']
+    key_delete=[]
+    for key in request.session.keys():
+        if key in key_session:
+            key_delete.append(key)
+    for elmnt in key_delete:
+        del request.session[elmnt]
+
     profil = Profil.objects.filter(user=request.user)
     if request.method == 'POST':
         paillasse_data = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
@@ -685,7 +693,6 @@ def fix_etalonnage(request):
 
         if request.method == 'POST':
             if formset.is_valid():
-                feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id']).update(etalonnage=request.POST['etalonnage'])
                 for form in formset:
                     etalonnage = form.save(commit=False)
                     etalonnage.type_analyse = type_analyse[0]

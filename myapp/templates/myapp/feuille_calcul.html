@@ -144,10 +144,63 @@ Entrez le numéro de l'échantillon:<br>
 {%block javascripts %}
 {{ block.super }}
 <script>
+function before_load()
+{
+    var case_full=[]
+    var serializedData = $('#form').serialize();
+    var nb_echantillon={{nb_echantillon}};
+    // l'option safe permet de retourner les valeurs dans le tableau parametreInterne
+    var parametreInterne= {{parametre_interne|safe}};
+    //on retire le parametre nEchantillon car il n'est pas utile pour les opération à venir
+    parametreInterne=parametreInterne.slice(1);
+    var nb_param=  parametreInterne.length;
+    var data_form=[];
+    for(var i=0;i<nb_echantillon;i++)
+    {
+        for(var j=0; j< nb_param ; j++)
+        {
+        var nom="id_form-"+i+"-"+parametreInterne[j];
+        data_form.push(nom);
+        }
+    }
+    var array=serializedData.split("&");
+    array.forEach(function(element) {
+            var tmp = element.split("=");
+            if(data_form.includes("id_"+tmp[0])==true)
+            {
+                if(tmp[1]!="")
+                   {
+                        case_full.push("id_"+tmp[0]);
+                        localStorage.setItem("id_"+tmp[0], tmp[1]);
+
+                   }
+            }
+    });
+     localStorage.setItem("case_full",case_full);
+}
+function after_load()
+{
+   var str=localStorage.getItem("case_full");
+   var regex = new RegExp('[a-zA-Z]');
+   if(str.length > 0)
+   {
+        str=str.split(",");
+        str.forEach(function(element)
+        {
+            var valeur = localStorage.getItem(element);
+            if(regex.test(valeur)!=true )
+                document.getElementById(element).value = parseFloat(valeur);
+            else
+                document.getElementById(element).value = valeur.replace("%20"," ");
+        });
+   }
+   localStorage.clear();
+
+}
+
 $(document).on('submit','#form_echantillon',function(e)
 {
 e.preventDefault();
- var serializedData = $('#form').serialize();
 $.ajax({
     type:'POST',
     url: '{% url 'myapp_ajax' %}',
@@ -158,11 +211,13 @@ $.ajax({
     success: function()
     {
         window.location = window.location.href;
-
     }
 });
 
 });
+window.onbeforeunload= before_load;
+window.onload =after_load ;
+
 </script>
 
 <script>
@@ -544,7 +599,7 @@ switch(type)
 {
     case "siccite":
         $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][4]).value);
+            var valeur=document.getElementById(data_form[0][4]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -557,7 +612,7 @@ switch(type)
 
     case "mvs":
         $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][4]).value);
+            var valeur=document.getElementById(data_form[0][4]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -569,7 +624,7 @@ switch(type)
 
     case "kmno4":
         $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][0]).value);
+            var valeur=document.getElementById(data_form[0][0]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -579,7 +634,7 @@ switch(type)
         });
 
         $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][2]).value);
+            var valeur=document.getElementById(data_form[0][2]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -588,7 +643,7 @@ switch(type)
 
         });
         $("#"+data_form[0][3]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][3]).value);
+            var valeur=document.getElementById(data_form[0][3]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -600,7 +655,7 @@ switch(type)
         break;
     case "dco":
         $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
+            var valeur=document.getElementById(data_form[0][1]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -609,7 +664,7 @@ switch(type)
 
         });
         $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][2]).value);
+            var valeur=document.getElementById(data_form[0][2]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -620,7 +675,7 @@ switch(type)
         break;
     case "ntk":
         $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][0]).value);
+            var valeur=document.getElementById(data_form[0][0]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -639,7 +694,7 @@ switch(type)
 
         });
         $("#"+data_form[0][3]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][3]).value);
+            var valeur=document.getElementById(data_form[0][3]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -648,7 +703,7 @@ switch(type)
 
         });
         $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][4]).value);
+            var valeur=document.getElementById(data_form[0][4]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -660,7 +715,7 @@ switch(type)
 
     case "silice":
         $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
+            var valeur=document.getElementById(data_form[0][1]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -672,7 +727,7 @@ switch(type)
 
     case "residu sec":
          $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][2]).value);
+            var valeur=document.getElementById(data_form[0][2]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -684,7 +739,7 @@ switch(type)
 
     case "sabm":
         $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
+            var valeur=document.getElementById(data_form[0][1]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -694,7 +749,7 @@ switch(type)
         });
 
         $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][2]).value);
+            var valeur=document.getElementById(data_form[0][2]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -706,7 +761,7 @@ switch(type)
 
     case "chlorophylle scor unesco":
         $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][0]).value);
+            var valeur=document.getElementById(data_form[0][0]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -715,7 +770,7 @@ switch(type)
 
         });
         $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][2]).value);
+            var valeur=document.getElementById(data_form[0][2]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -726,6 +781,24 @@ switch(type)
         break;
 
     case "oxygene dissous":
+        var array1=[];
+        var array2=[];
+        for(var i=0;i<nb_echantillon;i++)
+        {
+            array1.push(data_form[i][0]);
+            array2.push(data_form[i][2]);
+        }
+       $.each(array1, function (index, value)
+       {
+            $("#"+array1[index]).on("focusout",function()
+            {
+                var valeur= document.getElementById(array1[index]).value;
+                if (valeur !="")
+                {
+                    $("#"+array2[index]).val(valeur);
+                }
+            });
+        });
 
         break;
 
@@ -743,8 +816,7 @@ switch(type)
 
     case "dbo avec dilution":
         $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][0]).value);
-
+            var valeur= document.getElementById(data_form[0][0]).value;
             for(var i=1;i<nb_echantillon;i++)
             {
                 $("#"+data_form[i][0]).val(valeur);
@@ -752,7 +824,7 @@ switch(type)
 
         });
         $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
+            var valeur=document.getElementById(data_form[0][1]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -761,7 +833,7 @@ switch(type)
 
         });
         $("#"+data_form[0][8]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][8]).value);
+            var valeur= document.getElementById(data_form[0][8]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
@@ -770,6 +842,7 @@ switch(type)
 
         });
         break;
+
 }
 
 </script>
