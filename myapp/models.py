@@ -115,9 +115,9 @@ class Analyse(models.Model):
     feuille_calcul = models.ForeignKey(Feuille_calcul, on_delete=models.CASCADE)
     nEchantillon= models.CharField(max_length=60, verbose_name="N° d'échantillon")
     #kmnoa4
-    var1_kmno4 = models.CharField(max_length=60, verbose_name="V0")
-    var2_kmno4 = models.CharField(max_length=60, verbose_name="V1")
-    var3_kmno4 = models.CharField(max_length=60, verbose_name="V2")
+    var1_kmno4 = models.CharField(max_length=60, verbose_name="V0 (mL)")
+    var2_kmno4 = models.CharField(max_length=60, verbose_name="V1 (mL)")
+    var3_kmno4 = models.CharField(max_length=60, verbose_name="V2 (mL)")
     var4_kmno4 = models.CharField(max_length=60, verbose_name="Facteur dilution")
     var5_kmno4 = models.CharField(max_length=60, verbose_name="Resultat en mg/L")
     #siccite
