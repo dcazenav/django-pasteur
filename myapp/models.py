@@ -31,7 +31,7 @@ class Parametre_externe_analyse(models.Model):
 class Parametre_interne_analyse(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
-    rang = models.IntegerField(default=2)
+    rang = models.IntegerField()
     def __str__(self):
         return self.nom
 class Parametre_etalonnage(models.Model):
