@@ -535,7 +535,11 @@ def fix_etalonnage(request):
         nb_etalonnage=6
         profil=Profil.objects.filter(user=request.user)
         type_analyse = Type_analyse.objects.filter(nom=choix)
-        param_etalonnage=type_analyse[0].parametre_etalonnage.all().values_list('nom',flat=True)
+        param_etalonnage=list(type_analyse[0].parametre_etalonnage.all().values_list('nom',flat=True))
+        if param_etalonnage[0]=="absorbance":
+            k=param_etalonnage[0]
+            param_etalonnage[0]=param_etalonnage[1]
+            param_etalonnage[1]=k
         #tableau contenant les parametre de l'étalonnage mais pour le javascript
         param_etalonnage_js=[]
         for param in param_etalonnage:
@@ -561,10 +565,6 @@ def fix_etalonnage(request):
                                                                                      type_analyse=type_analyse[0]))
         elif choix == "silice":
             etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
-                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
-                                                                                     type_analyse=type_analyse[0]))
-        elif choix == "silice ifremer":
-            etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.4', '0.5', '1', '5', '10']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],
                                                                                      type_analyse=type_analyse[0]))
 
