@@ -13,5 +13,9 @@ urlpatterns=[
     path('feuille_calcul/', views.feuille_calcul_data, name='myapp_calcul'),
     path('export/<int:id_feuille_calcul>', views.export_analyse, name='export_analyse'),
     path('ajax/', views.ajax_echantillon, name='myapp_ajax'),
-    path('etalonnage/',views.fix_etalonnage,name='myapp_etalonnage')
+    path('test/', views.test, name='myapp_test'),
+    path('etalonnage/',views.fix_etalonnage,name='myapp_etalonnage'),
+    path('export_xls/<int:id_feuille_calcul>',views.export_xls, name='myapp_export_xls'),
+    path('export_pdf/<int:id_feuille_calcul>',views.export_pdf, name='myapp_export_pdf')
+
 ]

@@ -11,6 +11,8 @@
     <th>N° Feuille de calcul</th>
     <th>Type d'analyse</th>
     <th>Date création</th>
+    <th>XLS</th>
+    <th>PDF</th>
 </tr>
 </thead>
 <tbody>
@@ -19,7 +21,9 @@
     <td> {{clc.id}}</td>
     <td>  {{clc.type_analyse.nom}}  </td>
     <td> {{clc.date_creation}}</td>
-    <td><a href="{% url 'export_analyse' id_feuille_calcul=clc.id %}">  Export </a> </td>
+    <td><a href="{% url 'myapp_export_xls' id_feuille_calcul=clc.id %}"><img src="http://icons.iconarchive.com/icons/graphicloads/filetype/32/excel-xls-icon.png" border="0"></a> </td>
+    <td><a href="{% url 'myapp_export_pdf' id_feuille_calcul=clc.id %}"><img src="http://icons.iconarchive.com/icons/graphicloads/filetype/32/pdf-icon.png" border="0"></a> </td>
+
 </tr>
 {% endfor %}
 </tbody>

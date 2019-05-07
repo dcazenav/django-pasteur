@@ -17,9 +17,12 @@
         <form action="" method="post">
         {% csrf_token %}
 
-        <input type="submit" name="XLS" value="Exporter en XLS" class="btn btn-success "/>
-        <input type="submit" name="PDF" value="Exporter en PDF" class="btn btn-success "/>
-
+        <input type="submit" name="XLS" value="Exporter en XLS" class="btn btn-danger "/>
+        <input type="submit" name="PDF" value="Exporter en PDF" class="btn btn-danger "/>
+        <br/>
+        <br/>
+        <input type="submit" name="choix" value="Faire une autre analyse" class="btn btn-primary"/>
+        <input type="submit" name="import" value="importer une autre Feuille" class="btn btn-primary"/>
         </form>
         </div>
     </div>
