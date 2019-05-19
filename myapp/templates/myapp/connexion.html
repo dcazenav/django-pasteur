@@ -1,14 +1,16 @@
 {% extends 'myapp/base.html' %}
 {% load crispy_forms_tags %}
+{% load static %}
+
     {% block content %}
     <div class="row">
-        <h1>Se connecter</h1>
+    <div class="offset-md-3">
+        <img class="fit-picture"
+            src="{% static 'img/logo_pasteur.png' %}"
+            alt="logo pasteur"
+        />
     </div>
-        {% if error %}
-            <div class="row">
-            <p><strong>Utilisateur inconnu ou mauvais de mot de passe.</strong></p>
-            </div>
-        {% endif %}
+    </div>
         <div class="row">
             <div class="col-lg-6">
             <form method="post" action=".">
@@ -18,5 +20,10 @@
             </form>
             </div>
         </div>
+        {% if error %}
+            <div class="row">
+            <p><strong>Utilisateur inconnu ou mauvais de mot de passe.</strong></p>
+            </div>
+        {% endif %}
     {% endblock %}
 
