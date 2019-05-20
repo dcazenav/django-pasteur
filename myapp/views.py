@@ -368,7 +368,11 @@ def feuille_calcul_data(request):
         if len(array_concentration) !=0 and len(array_absorbance)!=0:
             for i in range(len(array_concentration)):
                 concentration_and_absorbance[array_concentration[i]] = array_absorbance[i]
-            parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
+            parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
+            if parametre_etalonnage[0] == "Absorbance":
+                k = parametre_etalonnage[0]
+                parametre_etalonnage[0] = parametre_etalonnage[1]
+                parametre_etalonnage[1] = k
             try:
                 os.makedirs(path)
             except OSError as e:

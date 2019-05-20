@@ -61,14 +61,28 @@ def export_xls_f(id_feuille_calcul):
     for cpt in range(len(param_externe_analyse)):
         dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
         entete_data_externe.append(liste_param_externe[cpt])
-    dico["N° feuille paillasse"]=feuille_calcul[0].feuille_paillasse.numero_paillasse
-    dico["Analyse réalisé par"]=profil.user.first_name+" "+profil.user.last_name
-    entete_data_externe.extend(("N° feuille paillasse","Analyse réalisé par"))
+
+    dico["N° feuille paillasse"] = feuille_calcul[0].feuille_paillasse.numero_paillasse
+    if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
+        dico["Etalonnage réalisé par"] = profil.user.first_name + " " + profil.user.last_name
+        entete_data_externe.extend(("N° feuille paillasse", "Etalonnage réalisé par"))
+    else:
+        dico["Analyse réalisé par"] = profil.user.first_name + " " + profil.user.last_name
+        entete_data_externe.extend(("N° feuille paillasse", "Analyse réalisé par"))
+
     path = ""
     if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
-        parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True)
-        parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True)
+        parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
+        if parametre_etalonnage[0] == "Absorbance":
+            k = parametre_etalonnage[0]
+            parametre_etalonnage[0] = parametre_etalonnage[1]
+            parametre_etalonnage[1] = k
+        parametre_etalonnage_nom = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True))
+        if parametre_etalonnage_nom[0] == "absorbance":
+            k = parametre_etalonnage_nom[0]
+            parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
+            parametre_etalonnage_nom[1] = k
         les_etalonnages=Etalonnage.objects.filter(profil=profil,type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)[::-1]
         for etalonnage in les_etalonnages:
             concentration_and_absorbance[etalonnage[0]] = etalonnage[1]
@@ -199,9 +213,14 @@ def export_pdf_f(id_feuille_calcul):
     for cpt in range(len(param_externe_analyse)):
         entete_data_externe.append(liste_param_externe[cpt])
         info_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
-    entete_data_externe.extend(("N° feuille paillasse", "Analyse réalisé par"))
-    info_data_extern_pdf.extend((["N° feuille paillasse", feuille_calcul[0].feuille_paillasse.numero_paillasse],
-                                 ["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name]))
+    if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
+        entete_data_externe.extend(("N° feuille paillasse", "Etalonnage réalisé par"))
+        info_data_extern_pdf.extend((["N° feuille paillasse", feuille_calcul[0].feuille_paillasse.numero_paillasse],
+                                     ["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name]))
+    else:
+        entete_data_externe.extend(("N° feuille paillasse", "Analyse réalisé par"))
+        info_data_extern_pdf.extend((["N° feuille paillasse", feuille_calcul[0].feuille_paillasse.numero_paillasse],
+                                     ["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name]))
     nested = []
     # array d'array composé de couple de deux array
     for x in range(0, len(info_data_extern_pdf) - 1, 2):
@@ -211,10 +230,18 @@ def export_pdf_f(id_feuille_calcul):
     if feuille_calcul[0].type_analyse.nom in ["sabm", "silice", "silice ifremer", "silicate"]:
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\" + profil.user.username + "\\" + \
                feuille_calcul[0].type_analyse.nom + ".png"
-        parametre_etalonnage = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur',
-                                                                                                     flat=True)
-        parametre_etalonnage_nom = feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',
-                                                                                                         flat=True)
+        parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur',
+                                                                                                     flat=True))
+        if parametre_etalonnage[0] == "Absorbance":
+            k = parametre_etalonnage[0]
+            parametre_etalonnage[0] = parametre_etalonnage[1]
+            parametre_etalonnage[1] = k
+        parametre_etalonnage_nom = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',
+                                                                                                         flat=True))
+        if parametre_etalonnage_nom[0] == "absorbance":
+            k = parametre_etalonnage_nom[0]
+            parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
+            parametre_etalonnage_nom[1] = k
         les_etalonnages = Etalonnage.objects.filter(profil=profil,
                                                     type_analyse=feuille_calcul[0].type_analyse).values_list(
             *parametre_etalonnage_nom)[::-1]
