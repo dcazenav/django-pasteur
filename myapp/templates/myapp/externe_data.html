@@ -42,22 +42,32 @@ $("#id_ox_1").on("focusout",function(){
 });
 
 $("#id_dco_1").on("focusout",function(){
-    val=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
-    result= 1.2/val;
-  $("#id_dco_2").val(result);
+    if(document.getElementById("id_dco_1").value!="")
+    {
+        val=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
+        result= 1.2/val;
+        $("#id_dco_2").val(result);
+    }
+    else
+        $("#id_dco_2").val("");
 });
 
 $("#id_dco_3").on("focusout",function(){
-    val1=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
-    val2=parseFloat((document.getElementById("id_dco_3").value).replace(",","."));
-    if(Math.abs(val2-val1)<0.5)
+    if(document.getElementById("id_dco_3").value!="")
     {
-    $("#id_dco_4").val("Blanc conforme");
+        val1=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
+        val2=parseFloat((document.getElementById("id_dco_3").value).replace(",","."));
+        if(Math.abs(val2-val1)<0.5)
+        {
+            $("#id_dco_4").val("Blanc conforme");
+        }
+        else
+        {
+            $("#id_dco_4").val("Blanc non conforme");
+        }
     }
     else
-    {
-    $("#id_dco_4").val("Blanc non conforme");
-    }
+        $("#id_dco_4").val("");
 });
 
 

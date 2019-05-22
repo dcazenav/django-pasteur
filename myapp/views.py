@@ -233,14 +233,23 @@ def externe_data_feuille_calcul(request):
 
     if 'parametres_externe' in request.session and 'paillasse_id' in request.session and 'choix' in request.session :
         paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
-        param_externe_analyse= request.session['parametres_externe']
+        param_externe_analyse= list(request.session['parametres_externe'])
         choix=request.session['choix']
+        if choix=="dco":
+            for i in range(len(param_externe_analyse)):
+                if param_externe_analyse[i] == "var5_dco":
+                    k=param_externe_analyse[i]
+                    param_externe_analyse[i]=param_externe_analyse[0]
+                    param_externe_analyse[0]=k
+                if param_externe_analyse[i] == "var7_dco":
+                    k = param_externe_analyse[i]
+                    param_externe_analyse[i] = param_externe_analyse[1]
+                    param_externe_analyse[1] = k
         type_analyse = Type_analyse.objects.filter(nom=choix)
         feuille_calculForm = modelform_factory(Feuille_calcul,
                                                form=Feuille_calculForm,
                                                fields=param_externe_analyse,
                                                )
-        form = feuille_calculForm(request.POST, request.FILES)
         if request.method == "POST":
             form = feuille_calculForm(request.POST, request.FILES)
             if form.is_valid():
@@ -575,6 +584,7 @@ def fix_etalonnage(request):
 
         if request.method == 'POST':
             if formset.is_valid():
+                feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id']).update(etalonnage=request.POST['etalonnage'])
                 for form in formset:
                     etalonnage = form.save(commit=False)
                     etalonnage.type_analyse = type_analyse[0]

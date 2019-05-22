@@ -70,7 +70,7 @@ class Feuille_calcul(models.Model):
     date_etalonnage = models.DateField(auto_now=False, verbose_name="Date de l'étalonnage", default=datetime.datetime(1980, 1, 1, 1, 1,1))
     longueur_onde=  models.CharField(max_length=100, verbose_name="longueur d'onde d'analyse")
     visa = models.CharField(max_length=100, verbose_name="Visa")
-    etalonnage = models.CharField(max_length=100, verbose_name="Etalonnage")
+    etalonnage = models.CharField(max_length=100, verbose_name="Etalonnage",default="null")
 
     var1_mest = models.CharField(max_length=100, verbose_name="numéro de lot des filtres")
     var2_mest = models.CharField(max_length=100, verbose_name="MEST de la solution de cellulose microcristalline(mg/L)")
