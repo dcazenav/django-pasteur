@@ -1,7 +1,5 @@
 from django import forms
 from .models import *
-from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Div,Layout,Field
 
 
 class ConnexionForm(forms.Form) :
@@ -9,21 +7,19 @@ class ConnexionForm(forms.Form) :
     password = forms.CharField(label="Mot de passe", widget=forms.PasswordInput)
 
 
-class ImportForm(forms.Form):
-    file = forms.FileField()
-
-
 class DateInput(forms.DateInput):
     input_type = 'date'
 
+
 class TimeInput(forms.TimeInput):
     input_type = 'time'
+
 
 class Feuille_calculForm(forms.ModelForm):
 
     class Meta:
         model = Feuille_calcul
-        exclude = ['feuille_paillasse','type_analyse','etalonnage']
+        exclude = ['profil','type_analyse','etalonnage']
         widgets = {
             'date_analyse': DateInput(),
             'heure_mise_sous_essai':TimeInput(),

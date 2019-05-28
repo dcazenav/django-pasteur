@@ -7,23 +7,16 @@ import datetime
 class Profil(models.Model):
     user = models.OneToOneField(
         User,
-        on_delete=models.CASCADE,  # La liaison OneToOne vers le modèle User
-                            )
+        on_delete=models.CASCADE)
+
     def __str__(self):
         return self.user.username
-
-
-class Feuille_paillasse(models.Model):
-    profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
-    numero_paillasse= models.CharField(max_length=60)
-    date= models.DateTimeField(default=timezone.now)
-    def __str__(self):
-        return self.numero_paillasse
 
 
 class Parametre_externe_analyse(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
+
     def __str__(self):
         return self.nom
 
@@ -34,6 +27,8 @@ class Parametre_interne_analyse(models.Model):
     rang = models.IntegerField()
     def __str__(self):
         return self.nom
+
+
 class Parametre_etalonnage(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
@@ -59,9 +54,8 @@ class Etalonnage(models.Model):
     absorbance= models.CharField(max_length=100, verbose_name="absorbance")
 
 
-
 class Feuille_calcul(models.Model):
-    feuille_paillasse= models.ForeignKey(Feuille_paillasse,on_delete=models.CASCADE)
+    profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
     type_analyse = models.ForeignKey(Type_analyse, on_delete=models.CASCADE)
     date_creation = models.DateTimeField(default=timezone.now)
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .forms import ConnexionForm,ImportForm,Feuille_calculForm
+from .forms import ConnexionForm,Feuille_calculForm
 from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django import forms
@@ -7,6 +7,7 @@ import os.path,errno
 import numpy as np
 import matplotlib.pyplot as plt
 from .utils import *
+import xlrd
 
 
 def connexion(request):
@@ -32,57 +33,35 @@ def connexion(request):
 
 
 def deconnexion(request):
-    #Supression des paillasse et feuille de calcul vide
+    #Supression des feuilles de calcul vide
     profil = Profil.objects.filter(user=request.user)
-    paillasse = Feuille_paillasse.objects.filter(profil=profil[0])
-    for elmt1 in paillasse:
-        verif = 0
-        feuille_calcul = Feuille_calcul.objects.filter(feuille_paillasse=elmt1)
-        for elmt2 in feuille_calcul:
-            analyses = Analyse.objects.filter(feuille_calcul=elmt2)
-            if analyses.exists():
-                verif = 1
-            else:
-                elmt2.delete()
-        if verif == 0:
-            elmt1.delete()
-
+    feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
+    for elmt in feuille_calcul:
+        analyses = Analyse.objects.filter(feuille_calcul=elmt)
+        if not analyses.exists():
+            elmt.delete()
     logout(request)
     return redirect(connexion)
 
 
-def index_paillasse(request):
-    #Supression des paillasses et feuilles de calcul vide et ajout des paillasses contenant de l'information dans un array
-    # pour l'afficher à l'utilisateur. Les feuilles de paillasses sont spécifiques à l'utilisateur courant.
+def index_feuille_calcul(request):
+    #Supression des feuilles de calcul vide et ajout des feuille de calcul contenant de l'information dans un array
+    # pour l'afficher à l'utilisateur. Les feuilles de calculs sont spécifiques à l'utilisateur courant.
     profil=Profil.objects.filter(user=request.user)
-    paillasse = Feuille_paillasse.objects.filter(profil=profil[0])
-    array_paillasse=[]
+    feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
+    array_feuille_calcul=[]
 
-    for elmt1 in paillasse:
-        verif = 0
-        feuille_calcul= Feuille_calcul.objects.filter(feuille_paillasse=elmt1)
-        for elmt2 in feuille_calcul:
-            analyses=Analyse.objects.filter(feuille_calcul=elmt2)
-            if analyses.exists():
-               verif=1
-            else:
-                elmt2.delete()
-        if verif==0:
-            elmt1.delete()
+    for elmt in feuille_calcul:
+        analyses = Analyse.objects.filter(feuille_calcul=elmt)
+        if not analyses.exists():
+            elmt.delete()
         else:
-            array_paillasse.append(elmt1)
-    return render(request,'myapp/index_paillasse.html',{'paillasse':array_paillasse})
-
-
-def view_paillasse(request,id_feuille_paillasse):
-    paillasse = Feuille_paillasse.objects.filter(id=id_feuille_paillasse)
-    feuille_calcul=Feuille_calcul.objects.filter(feuille_paillasse=paillasse[0])
-    return render(request,'myapp/view_paillasse.html', locals())
-
+            array_feuille_calcul.append(elmt)
+    return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':array_feuille_calcul})
 
 
 def import_data(request):
-    key_session=['type_analyses','choix','type_analyses_echantillon','parametres_externe','paillasse_id','feuille_calcul_id','les_parametres']
+    key_session=['type_analyses','choix','type_analyses_echantillon','parametres_externe','feuille_calcul_id','les_parametres']
     key_delete=[]
     for key in request.session.keys():
         if key in key_session:
@@ -90,50 +69,72 @@ def import_data(request):
     for elmnt in key_delete:
         del request.session[elmnt]
 
-    profil = Profil.objects.filter(user=request.user)
-    if request.method == 'POST':
-        paillasse_data = request.FILES['file'].read().decode('cp1252').split("\n")[:-1]
-        fullname=request.FILES['file'].name
-        dico1 = []
-        dico2 = {}
-        dico3 ={'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
-                'taux de siccité (%)': 'siccite',
-                'matières volatiles sèches': 'matiere seche et mvs',
-                'matières en suspension (filtre what': 'mest',
-                'dem. chim. en oxygène': 'dco',
-                'azote kjeldahl (en n)': 'ntk',
-                'silicates (en mg/l de sio2)': 'silicate',
-                'oxygène dissous (méthode iodométrique)': 'oxygene dissous',
-                'chlorophylle alpha': 'chlorophylle',
-                'agents de surface': 'sabm',
-                'résidu sec à 180°c': 'residu sec',
-                'silice(µmol/l sio2)': 'silice',
-                'dbo5': 'dbo5'}
+    container_type = []
+    dico1 = []
+    dico3 = {'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
+             'taux de siccité (%)': 'siccite',
+             'matières volatiles sèches': 'matiere seche et mvs',
+             'matières en suspension (filtre what': 'mest',
+             'dem. chim. en oxygène': 'dco',
+             'azote kjeldahl (en n)': 'ntk',
+             'silicates solubles (en mg/l de sio2)': 'silicate',
+             'oxygène dissous (méthode iodométrique)': 'oxygene dissous',
+             'chlorophylle alpha': 'chlorophylle',
+             'agents de surface': 'sabm',
+             'résidu sec à 180°c': 'residu sec',
+             'silicates solubles (µmol/l sio2)': 'silice',
+             'dbo5': 'dbo5'}
 
-        container_type = []
-        for line in paillasse_data:
-            ls = line.split(';')
-            tmp = []
-            ls[5] = ls[5].lower()
-            for cle2 in dico3.keys():
-                if cle2 in ls[5]:
-                    tmp.append(ls[1])
-                    tmp.append(dico3[cle2])
-                    dico1.append(tmp)
-                    dico2[ls[5]] = ls[7]
-                    if dico3[cle2] not in container_type:
-                        container_type.append(dico3[cle2])
+    if 'valider' in request.POST:
+        myfile = request.FILES["myfile"]
 
-        paillasse, created = Feuille_paillasse.objects.get_or_create(profil=profil[0], numero_paillasse=fullname)
-        request.session['paillasse_id'] = paillasse.id
+
+        if myfile.name.endswith('.TXT'):
+            paillasse_data = request.FILES['myfile'].read().decode('cp1252').split("\n")[:-1]
+
+            for line in paillasse_data:
+                ls = line.split(';')
+                tmp = []
+                ls[5] = ls[5].lower()
+                for cle2 in dico3.keys():
+                    if cle2 in ls[5]:
+                        tmp.extend((ls[1], dico3[cle2]))
+                        dico1.append(tmp)
+                        if dico3[cle2] not in container_type:
+                            container_type.append(dico3[cle2])
+
+        elif myfile.name.endswith('.xls'):
+            unique = []
+            workbook = xlrd.open_workbook(file_contents=myfile.read())
+            sheet = workbook.sheet_by_index(0)
+            index_echantillon = -1
+            index_element = -1
+            for i in range(sheet.nrows):
+                data = []
+                row = sheet.row_values(i)
+                for j in range(len(row)):
+                    if row[j] == "Echantillon":
+                        index_echantillon = j
+                    if row[j] == "Nom Elément":
+                        index_element = j
+                if index_echantillon != -1 and index_element != -1:
+                    type = row[index_element].lower()
+                    for cle in dico3.keys():
+                        if cle in type:
+                            if row[index_echantillon] not in unique:
+                                data.extend(([row[index_echantillon], dico3[cle]]))
+                                dico1.append(data)
+                                unique.append(row[index_echantillon])
+                                if dico3[cle] not in container_type:
+                                    container_type.append(dico3[cle])
+
+        # return render(request,'myapp/test.html',locals())
         request.session['type_analyses'] = container_type
-        request.session['type_analyses_echantillon']= dico1
+        request.session['type_analyses_echantillon'] = dico1
         request.session['type_analyses_echantillon_save'] = dico1
         return redirect(choix_analyse)
-    else:
-        form = ImportForm()
 
-    return render(request, 'myapp/import_data.html',{'form': form})
+    return render(request, 'myapp/import_data.html')
 
 
 def choix_analyse(request):
@@ -144,7 +145,7 @@ def choix_analyse(request):
             choix = request.POST['choix']
             request.session['choix'] = choix
             if choix in ["dbo5","chlorophylle"]:
-                return redirect(choix_specifique)
+                return redirect(choix_specifique2)
 
             type_analyse = Type_analyse.objects.filter(nom=choix)
             les_parametres = []
@@ -170,14 +171,34 @@ def choix_analyse(request):
             request.session['les_parametres'] = les_parametres
             request.session['parametres_externe'] = parametres_externe
 
-
-            return redirect(externe_data_feuille_calcul)
+            return redirect(choix_specifique1)
     else:
         les_types=""
 
     return render(request,'myapp/choix_analyse.html',{'les_types':les_types})
 
-def choix_specifique(request):
+
+def choix_specifique1(request):
+    if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
+        choix = request.session['choix']
+        echantillon = request.session['type_analyses_echantillon']
+        echantillon_specifique = []
+        echantillon_selected_and_analyse=[]
+
+        for elmt in echantillon:
+            if choix in elmt[1]:
+                echantillon_specifique.append(elmt[0])
+        if request.method == 'POST':
+            choix_echantillons = request.POST.getlist('checks')
+            for elmt in choix_echantillons:
+                couple = [elmt, choix]
+                echantillon_selected_and_analyse.append(couple)
+
+            request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
+            return redirect(externe_data_feuille_calcul)
+        return render(request,'myapp/choix_specifique1.html',{'echantillon': echantillon_specifique})
+
+def choix_specifique2(request):
     if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
         choix = request.session['choix']
         echantillon = request.session['type_analyses_echantillon']
@@ -204,6 +225,8 @@ def choix_specifique(request):
             type_analyse = Type_analyse.objects.filter(nom=choix_analyse)
             param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('nom', flat=True))
             index_param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('rang', flat=True))
+
+            #Trie des parametres selon leur rang
             for i in range(len(index_param_interne_analyse)):
                 for j in range(len(index_param_interne_analyse) - 1):
                     if index_param_interne_analyse[i] < index_param_interne_analyse[j]:
@@ -226,13 +249,12 @@ def choix_specifique(request):
             request.session['choix']=choix_analyse
             return redirect(externe_data_feuille_calcul)
 
-        return render(request,'myapp/choix_specifique.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
+        return render(request,'myapp/choix_specifique2.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
 
 
 def externe_data_feuille_calcul(request):
-
-    if 'parametres_externe' in request.session and 'paillasse_id' in request.session and 'choix' in request.session :
-        paillasse= Feuille_paillasse.objects.filter(id=request.session['paillasse_id'])
+    profil = Profil.objects.filter(user=request.user)
+    if 'parametres_externe' in request.session and 'choix' in request.session :
         param_externe_analyse= list(request.session['parametres_externe'])
         choix=request.session['choix']
         if choix=="dco":
@@ -254,7 +276,7 @@ def externe_data_feuille_calcul(request):
             form = feuille_calculForm(request.POST, request.FILES)
             if form.is_valid():
                 feuille_calcul = form.save(commit=False)
-                feuille_calcul.feuille_paillasse=paillasse[0]
+                feuille_calcul.profil= profil[0]
                 feuille_calcul.type_analyse =type_analyse[0]
                 feuille_calcul.save()
                 request.session['feuille_calcul_id'] = feuille_calcul.id
@@ -373,6 +395,15 @@ def feuille_calcul_data(request):
         else:
             num_echantillon2 = num_echantillon
 
+        #Correspondance des indexes pour qu'à la ligne sélectionner l'ajout ou la suppression se passe bien
+        localisation=[-1 for i in range(len(num_echantillon2))]
+        cpt1,cpt2=0,0
+        while cpt1< len(num_echantillon) and cpt2 <len(num_echantillon2):
+            if num_echantillon[cpt1]==num_echantillon2[cpt2]:
+                localisation[cpt2]=cpt1
+                cpt1+=1
+            cpt2+=1
+        request.session['localisation'] = localisation
         # création du graphique d'absorbance
         if len(array_concentration) !=0 and len(array_absorbance)!=0:
             for i in range(len(array_concentration)):
@@ -417,7 +448,7 @@ def feuille_calcul_data(request):
                                               min_num=nb_echantillon,
                                               widgets=
                                                 {
-                                                    'nEchantillon': forms.TextInput(attrs={'readonly': True}),
+                                                    'nEchantillon': forms.TextInput(attrs={'readonly': False}),
                                                     'var5_kmno4': forms.TextInput(attrs={'readonly': True}),
                                                     'var3_siccite':forms.TextInput(attrs={'readonly': True}),
                                                     'var6_siccite': forms.TextInput(attrs={'readonly': True}),
@@ -492,7 +523,6 @@ def feuille_calcul_data(request):
                                'error': error
                                })
 
-
         return render(request,'myapp/feuille_calcul.html',{'formset': formset,'nb_echantillon':nb_echantillon,
                                                            'parametre_interne':param_interne_analyse,'choix': choix,
                                                            'feuille_calcul':feuille_calcul[0],'array_concentration':array_concentration,
@@ -504,16 +534,34 @@ def feuille_calcul_data(request):
                                                            })
 
 
-def ajax_echantillon(request):
+def ajax_echantillon_add(request):
     if request.method == 'POST':
         numero = request.POST['ajax']
+        pos= int(request.POST['pos'])
         Echantillon.objects.get_or_create(numero= numero)
-        if 'type_analyses_echantillon' in request.session and 'choix' in request.session:
+        if 'type_analyses_echantillon' in request.session and 'choix' in request.session and 'localisation' in request.session:
             choix=request.session['choix']
             echantillon_and_type =request.session['type_analyses_echantillon']
-            echantillon_and_type.append([numero,choix])
+            localisation=request.session['localisation']
+            if pos !=-10:
+                echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
+            else:
+                echantillon_and_type.append([numero, choix])
             request.session['type_analyses_echantillon']= echantillon_and_type
             return HttpResponse('')
+
+
+def ajax_echantillon_del(request):
+    pos = int(request.GET.get('pos', None))
+    if 'type_analyses_echantillon' in request.session and 'localisation' in request.session:
+        echantillon_and_type = request.session['type_analyses_echantillon']
+        localisation = request.session['localisation']
+        if pos != -10:
+            if localisation[pos] != -1:
+                del echantillon_and_type[localisation[pos]]
+                request.session['type_analyses_echantillon']= echantillon_and_type
+        return HttpResponse('')
+
 
 def export_analyse(request,id_feuille_calcul):
 

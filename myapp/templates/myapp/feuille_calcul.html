@@ -20,21 +20,9 @@
     word-wrap:break-word;
 }
 
-#tab_feuille_calcul table
-{
-    table-layout: fixed;
-    width: 90%;
-    min-width: 400px;
-}
-#tab_feuille_calcul th,
-#tab_feuille_calcul td
-{
-max-width:120px;
-text-align: center;
-word-wrap:break-word;
-}
-</style>
 
+
+</style>
 
 <h1 class="row"> Entrez vos données</h1>
 <br/>
@@ -86,17 +74,18 @@ word-wrap:break-word;
    <form  id="form" autocomplete="off" method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
-       <div style="overflow:scroll; border:#000000 1px solid;width: 100%;min-width:600px;max-width:1000px;height:auto">
-           <table id="tab_feuille_calcul">
+           <table id="tab_feuille_calcul"  class="display" cellspacing="0">
             {% for form in formset.forms %}
               {% if forloop.first %}
               <thead><tr>
+                <th></th>
                 {% for field in form.visible_fields %}
                 <th>{{ field.label|capfirst }}</th>
                 {% endfor %}
               </tr></thead>
               {% endif %}
               <tr >
+              <td class="row-selector"></td>
               {% for field in form.visible_fields %}
                 <td>
                 {# Include the hidden fields in the form #}
@@ -111,10 +100,9 @@ word-wrap:break-word;
               </tr>
             {% endfor %}
             </table>
-       </div>
         <input name="analyse" class="btn btn-primary" type="submit" value="Valider Analyses">
         <button onclick= myFunction()    type="button">Générer résultats</button>
-
+        <button id="del_echantillon" type="button">Supprimer echantillon</button>
     </form>
 </div>
 <br/>
@@ -143,6 +131,32 @@ Entrez le numéro de l'échantillon:<br>
 
 {%block javascripts %}
 {{ block.super }}
+<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"> </script>
+<script>
+$(document).ready(function()
+{
+     var table = $('#tab_feuille_calcul').DataTable
+     (
+         {
+            'ordering':false,
+            'paging':false,
+            'searching':false,
+            columnDefs:
+            [{
+                orderable: false,
+                className: 'select-checkbox',
+                targets:   0
+            }],
+            select: {
+                style:    'os',
+                selector: 'td:first-child'
+            }
+        }
+     );
+
+} );
+</script>
 <script>
 function before_load()
 {
@@ -155,6 +169,7 @@ function before_load()
     parametreInterne=parametreInterne.slice(1);
     var nb_param=  parametreInterne.length;
     var data_form=[];
+
     for(var i=0;i<nb_echantillon;i++)
     {
         for(var j=0; j< nb_param ; j++)
@@ -182,7 +197,11 @@ function after_load()
 {
    var str=localStorage.getItem("case_full");
    var regex = new RegExp('[a-zA-Z]');
-   if(str.length > 0)
+   var test= localStorage.getItem("etat");
+   var index=  localStorage.getItem("index");
+    alert(test);
+    alert(index);
+   if(str.length >0)
    {
         str=str.split(",");
         str.forEach(function(element)
@@ -200,24 +219,56 @@ function after_load()
 
 $(document).on('submit','#form_echantillon',function(e)
 {
-e.preventDefault();
-$.ajax({
-    type:'POST',
-    url: '{% url 'myapp_ajax' %}',
-    data:{
-            ajax: $('#num_echantillon').val(),
-            csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
-         },
-    success: function()
-    {
-        window.location = window.location.href;
-    }
-});
+    e.preventDefault();
+    var index=-10;
+    var rows = $('#tab_feuille_calcul').DataTable().rows( { selected: true } ).indexes().each(function ( value)
+            {
+                index=value;
+
+            });
+    $.ajax({
+        type:'POST',
+        url: '{% url 'myapp_ajax_add' %}',
+        data:{
+                ajax: $('#num_echantillon').val(),
+                pos: index,
+                csrfmiddlewaretoken: $('input[name=csrfmiddlewaretoken]').val()
+             },
+        success: function()
+        {
+            localStorage.setItem("etat", "add");
+            localStorage.setItem("index", index);
+            window.location = window.location.href;
+        }
+    });
 
 });
+
+$( "#del_echantillon" ).click(function(e) {
+    var del_index=-10;
+    var rows = $('#tab_feuille_calcul').DataTable().rows( { selected: true } ).indexes().each(function ( value)
+            {
+                 del_index=value;
+
+            });
+    $.ajax({
+        url: '{% url 'myapp_ajax_del' %}',
+        data:{
+                pos: del_index,
+             },
+        success: function()
+        {
+            localStorage.setItem("etat", "del");
+            localStorage.setItem("index",del_index);
+            window.location = window.location.href;
+        }
+    });
+});
+
+
+
 window.onbeforeunload= before_load;
 window.onload =after_load ;
-
 </script>
 
 <script>
@@ -576,6 +627,7 @@ function myFunction()
 }
 </script>
 
+//Autocomplétion
 <script>
 var type= "{{ choix }}";
 var nb_echantillon={{nb_echantillon}};
@@ -610,7 +662,7 @@ switch(type)
 
         break;
 
-    case "mvs":
+    case "matiere seche et mvs":
         $("#"+data_form[0][4]).on("focusout",function(){
             var valeur=document.getElementById(data_form[0][4]).value;
 

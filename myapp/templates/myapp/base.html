@@ -9,6 +9,8 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         <link href='//fonts.googleapis.com/css?family=Lobster&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+        <link href='https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css' rel='stylesheet' type='text/css'>
+        <link href='https://cdn.datatables.net/select/1.3.0/css/select.dataTables.min.css' rel='stylesheet' type='text/css'>
 
         <title>MyBenchtop</title>
 
@@ -35,7 +37,7 @@
                             Bonjour {{user.first_name}}
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <a class="dropdown-item" href="{% url 'myapp_index_paillasse'%}">Mes feuilles de paillasses</a>
+                                <a class="dropdown-item" href="{% url 'myapp_index_feuille_calcul'%}">Mes feuilles de calculs</a>
                                 <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
                             </div>
                             </li>

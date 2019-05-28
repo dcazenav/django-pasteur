@@ -9,14 +9,14 @@ from django.template.loader import render_to_string
 
 def export_xls_f(id_feuille_calcul):
     feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
-    profil=feuille_calcul[0].feuille_paillasse.profil
+    profil=feuille_calcul[0].profil
     param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
     liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
     feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
         *param_externe_analyse)
     feuille_calcul_trie = feuille_calcul_trie[0]
 
-    filename=profil.user.first_name+"_"+feuille_calcul[0].feuille_paillasse.numero_paillasse+"_"+feuille_calcul[0].type_analyse.nom
+    filename=profil.user.first_name+"_"+str(feuille_calcul[0].id)+"_"+feuille_calcul[0].type_analyse.nom
     dico = {}
     entete_data_externe= []
     parametre_etalonnage=""
@@ -62,13 +62,12 @@ def export_xls_f(id_feuille_calcul):
         dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
         entete_data_externe.append(liste_param_externe[cpt])
 
-    dico["N° feuille paillasse"] = feuille_calcul[0].feuille_paillasse.numero_paillasse
     if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
         dico["Etalonnage réalisé par"] = profil.user.first_name + " " + profil.user.last_name
-        entete_data_externe.extend(("N° feuille paillasse", "Etalonnage réalisé par"))
+        entete_data_externe.append( "Etalonnage réalisé par")
     else:
         dico["Analyse réalisé par"] = profil.user.first_name + " " + profil.user.last_name
-        entete_data_externe.extend(("N° feuille paillasse", "Analyse réalisé par"))
+        entete_data_externe.append( "Analyse réalisé par")
 
     path = ""
     if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
@@ -159,14 +158,14 @@ def export_xls_f(id_feuille_calcul):
 
 def export_pdf_f(id_feuille_calcul):
     feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
-    profil = feuille_calcul[0].feuille_paillasse.profil
+    profil = feuille_calcul[0].profil
     param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
     liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
     feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
         *param_externe_analyse)
     feuille_calcul_trie = feuille_calcul_trie[0]
 
-    filename = profil.user.first_name + "_" + feuille_calcul[0].feuille_paillasse.numero_paillasse + "_" + feuille_calcul[
+    filename = profil.user.first_name + "_" +str(feuille_calcul[0].id) + "_" + feuille_calcul[
         0].type_analyse.nom
     entete_data_externe = []
     parametre_etalonnage = ""
@@ -214,13 +213,11 @@ def export_pdf_f(id_feuille_calcul):
         entete_data_externe.append(liste_param_externe[cpt])
         info_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
     if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
-        entete_data_externe.extend(("N° feuille paillasse", "Etalonnage réalisé par"))
-        info_data_extern_pdf.extend((["N° feuille paillasse", feuille_calcul[0].feuille_paillasse.numero_paillasse],
-                                     ["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name]))
+        entete_data_externe.append("Etalonnage réalisé par")
+        info_data_extern_pdf.append(["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name])
     else:
-        entete_data_externe.extend(("N° feuille paillasse", "Analyse réalisé par"))
-        info_data_extern_pdf.extend((["N° feuille paillasse", feuille_calcul[0].feuille_paillasse.numero_paillasse],
-                                     ["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name]))
+        entete_data_externe.append("Analyse réalisé par")
+        info_data_extern_pdf.append(["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name])
     nested = []
     # array d'array composé de couple de deux array
     for x in range(0, len(info_data_extern_pdf) - 1, 2):

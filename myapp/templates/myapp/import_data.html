@@ -10,7 +10,8 @@
     <div class="col-lg-6">
         <form action="" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-                    {{form | crispy}}
+            <label class="text-primary">Upload Your File </label>
+            <input name="myfile" id="myfile" type="file" class="form-control" multiple="">
             <input type="submit" name="valider" class="btn btn-primary "/>
         </form>
     </div>
