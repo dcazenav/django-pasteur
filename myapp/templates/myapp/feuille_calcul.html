@@ -197,20 +197,44 @@ function after_load()
 {
    var str=localStorage.getItem("case_full");
    var regex = new RegExp('[a-zA-Z]');
-   var test= localStorage.getItem("etat");
-   var index=  localStorage.getItem("index");
-    alert(test);
-    alert(index);
-   if(str.length >0)
+   var etat= localStorage.getItem("etat");
+   var index=  parseFloat(localStorage.getItem("index"));
+   if(str!="")
    {
         str=str.split(",");
         str.forEach(function(element)
         {
+
             var valeur = localStorage.getItem(element);
-            if(regex.test(valeur)!=true )
-                document.getElementById(element).value = parseFloat(valeur);
-            else
-                document.getElementById(element).value = valeur.replace("%20"," ");
+            if (etat === null)
+            {
+                if(regex.test(valeur)!=true )
+                    document.getElementById(element).value = parseFloat(valeur);
+                else
+                    document.getElementById(element).value = valeur.replace("%20"," ");
+            }
+            if(etat== "add")
+            {
+                var i = element.match(new RegExp("-"+ "(.*)" + "-"))[1];
+                i=parseFloat(i);
+                if (i > index)
+                {
+                    var nb=i+1;
+                    element=element.replace(/-.*-/, '-'+nb+'-');
+                    if(regex.test(valeur)!=true )
+                        document.getElementById(element).value = parseFloat(valeur);
+                    else
+                        document.getElementById(element).value = valeur.replace("%20"," ");
+                }
+                else
+                {
+                    if(regex.test(valeur)!=true )
+                        document.getElementById(element).value = parseFloat(valeur);
+                    else
+                        document.getElementById(element).value = valeur.replace("%20"," ");
+                }
+
+            }
         });
    }
    localStorage.clear();
@@ -220,7 +244,7 @@ function after_load()
 $(document).on('submit','#form_echantillon',function(e)
 {
     e.preventDefault();
-    var index=-10;
+    var index=300;
     var rows = $('#tab_feuille_calcul').DataTable().rows( { selected: true } ).indexes().each(function ( value)
             {
                 index=value;

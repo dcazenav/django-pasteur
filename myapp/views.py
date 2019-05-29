@@ -543,7 +543,7 @@ def ajax_echantillon_add(request):
             choix=request.session['choix']
             echantillon_and_type =request.session['type_analyses_echantillon']
             localisation=request.session['localisation']
-            if pos !=-10:
+            if pos !=300:
                 echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
             else:
                 echantillon_and_type.append([numero, choix])
