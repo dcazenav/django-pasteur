@@ -235,6 +235,30 @@ function after_load()
                 }
 
             }
+            if(etat== "del")
+            {
+                var i = element.match(new RegExp("-"+ "(.*)" + "-"))[1];
+                i=parseFloat(i);
+                if (i > index)
+                {
+                    var nb=i-1;
+                    element=element.replace(/-.*-/, '-'+nb+'-');
+                    if(regex.test(valeur)!=true )
+                        document.getElementById(element).value = parseFloat(valeur);
+                    else
+                        document.getElementById(element).value = valeur.replace("%20"," ");
+                }
+                else if(i <index)
+                {
+                    if(regex.test(valeur)!=true )
+                        document.getElementById(element).value = parseFloat(valeur);
+                    else
+                        document.getElementById(element).value = valeur.replace("%20"," ");
+
+                }
+
+            }
+
         });
    }
    localStorage.clear();
