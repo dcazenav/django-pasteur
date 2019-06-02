@@ -20,7 +20,12 @@
     word-wrap:break-word;
 }
 
-
+div.dataTables_wrapper {
+    width: 1200px;
+    margin: 0 auto;
+}
+.DTFC_LeftBodyLiner{overflow-y:unset !important}
+.DTFC_RightBodyLiner{overflow-y:unset !important}
 
 </style>
 
@@ -33,7 +38,7 @@
     </div>
 {% endif %}
 
-{% if choix in 'silicate,sabm,silice,silice ifremer'%}
+{% if choix in 'SIL 650,SIL 815,sabm,SIL-BC'%}
 
 <div class="row">
 
@@ -74,15 +79,18 @@
    <form  id="form" autocomplete="off" method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
-           <table id="tab_feuille_calcul"  class="display" cellspacing="0">
+           <table id="tab_feuille_calcul"  class="stripe row-border order-column" style="width:100%">
             {% for form in formset.forms %}
               {% if forloop.first %}
-              <thead><tr>
+              <thead>
+              <tr>
                 <th></th>
                 {% for field in form.visible_fields %}
                 <th>{{ field.label|capfirst }}</th>
                 {% endfor %}
-              </tr></thead>
+              </tr>
+              </thead>
+               <tbody>
               {% endif %}
               <tr >
               <td class="row-selector"></td>
@@ -99,6 +107,7 @@
               {% endfor %}
               </tr>
             {% endfor %}
+               </tbody>
             </table>
         <input name="analyse" class="btn btn-primary" type="submit" value="Valider Analyses">
         <button onclick= myFunction()    type="button">Générer résultats</button>
@@ -131,8 +140,6 @@ Entrez le numéro de l'échantillon:<br>
 
 {%block javascripts %}
 {{ block.super }}
-<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/select/1.3.0/js/dataTables.select.min.js"> </script>
 <script>
 $(document).ready(function()
 {
@@ -142,6 +149,13 @@ $(document).ready(function()
             'ordering':false,
             'paging':false,
             'searching':false,
+            scrollY:        300,
+            scrollX:        true,
+            scrollCollapse: true,
+            fixedColumns:
+            {
+            leftColumns: 2,
+            },
             columnDefs:
             [{
                 orderable: false,
@@ -152,6 +166,7 @@ $(document).ready(function()
                 style:    'os',
                 selector: 'td:first-child'
             }
+
         }
      );
 
@@ -406,7 +421,7 @@ function myFunction()
              }
              break;
 
-        case "mest":
+        case "MES":
             for(var i=0;i<nb_echantillon;i++)
             {
                 var p1 = parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
@@ -479,65 +494,65 @@ function myFunction()
         case "dbo avec dilution":
             for(var i=0;i<nb_echantillon;i++)
             {
-                var c3=  parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
-                var c4=  parseFloat((document.getElementById(data_form[i][1]).value).replace(",","."));
-                var c1=  parseFloat((document.getElementById(data_form[i][2]).value).replace(",","."));
-                var c2=  parseFloat((document.getElementById(data_form[i][3]).value).replace(",","."));
-                var vt=  parseFloat((document.getElementById(data_form[i][8]).value).replace(",","."));
-                var ve=  parseFloat((document.getElementById(data_form[i][9]).value).replace(",","."));
+                var c3=  parseFloat((document.getElementById(data_form[i][3]).value).replace(",","."));
+                var c4=  parseFloat((document.getElementById(data_form[i][4]).value).replace(",","."));
+                var c1=  parseFloat((document.getElementById(data_form[i][5]).value).replace(",","."));
+                var c2=  parseFloat((document.getElementById(data_form[i][6]).value).replace(",","."));
+                var vt=  parseFloat((document.getElementById(data_form[i][1]).value).replace(",","."));
+                var ve=  parseFloat((document.getElementById(data_form[i][2]).value).replace(",","."));
 
                 if(c1>0)
                 {
-                    document.getElementById(data_form[i][4]).value=parseFloat(c1/3).toFixed(2);
-                    document.getElementById(data_form[i][5]).value= parseFloat(c1-c2).toFixed(2);
-                    document.getElementById(data_form[i][6]).value= parseFloat(2*(c1/3)).toFixed(2);
+                    document.getElementById(data_form[i][9]).value=parseFloat(c1/3).toFixed(2);
+                    document.getElementById(data_form[i][11]).value= parseFloat(c1-c2).toFixed(2);
+                    document.getElementById(data_form[i][12]).value= parseFloat(2*(c1/3)).toFixed(2);
 
                 }
                 if(vt>0)
                 {
                     document.getElementById(data_form[i][10]).value= parseFloat(vt-ve).toFixed(1);
-                    document.getElementById(data_form[i][11]).value= parseFloat(vt/ve).toFixed(0);
-                    document.getElementById(data_form[i][12]).value=parseFloat((vt-ve)/vt).toFixed(3);
+                    document.getElementById(data_form[i][0]).value= parseFloat(vt/ve).toFixed(0);
+                    document.getElementById(data_form[i][14]).value=parseFloat((vt-ve)/vt).toFixed(3);
                 }
 
 
                 if(c3>0)
                 {
-                    document.getElementById(data_form[i][7]).value= parseFloat(c3-c4).toFixed(2);
-                    var c1_c2= parseFloat((document.getElementById(data_form[i][5]).value).replace(",","."));
-                    var vt_ve_vt= parseFloat((document.getElementById(data_form[i][12]).value).replace(",","."));
-                    var c3_c4= parseFloat((document.getElementById(data_form[i][7]).value).replace(",","."));
-                    var vt_par_ve= parseFloat((document.getElementById(data_form[i][11]).value).replace(",","."));
-                    document.getElementById(data_form[i][13]).value= parseFloat((c1_c2-vt_ve_vt*c3_c4)*vt_par_ve).toFixed(0);
-                    var c1_par_3=parseFloat((document.getElementById(data_form[i][4]).value).replace(",","."))
+                    document.getElementById(data_form[i][13]).value= parseFloat(c3-c4).toFixed(2);
+                    var c1_c2= parseFloat((document.getElementById(data_form[i][11]).value).replace(",","."));
+                    var vt_ve_vt= parseFloat((document.getElementById(data_form[i][14]).value).replace(",","."));
+                    var c3_c4= parseFloat((document.getElementById(data_form[i][13]).value).replace(",","."));
+                    var vt_par_ve= parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
+                    document.getElementById(data_form[i][7]).value= parseFloat((c1_c2-vt_ve_vt*c3_c4)*vt_par_ve).toFixed(0);
+                    var c1_par_3=parseFloat((document.getElementById(data_form[i][9]).value).replace(",","."))
                     if(c1_par_3 < c1_c2)
-                    {
-                        document.getElementById(data_form[i][14]).value= "valable";
-                    }
-                    else
-                    {
-                      document.getElementById(data_form[i][14]).value= "non valable";
-
-                    }
-                    var deux_c1_div_troix = parseFloat((document.getElementById(data_form[i][6]).value).replace(",","."));
-                    if(c1_c2 <= deux_c1_div_troix)
                     {
                         document.getElementById(data_form[i][15]).value= "valable";
                     }
                     else
                     {
-                        document.getElementById(data_form[i][15]).value= "non valable";
-                    }
+                      document.getElementById(data_form[i][15]).value= "non valable";
 
-                    var val13=document.getElementById(data_form[i][14]).value;
-                    var val14=document.getElementById(data_form[i][15]).value
-                    if(val13==val14)
+                    }
+                    var deux_c1_div_troix = parseFloat((document.getElementById(data_form[i][12]).value).replace(",","."));
+                    if(c1_c2 <= deux_c1_div_troix)
                     {
-                         document.getElementById(data_form[i][16]).value= "VRAI";
+                        document.getElementById(data_form[i][16]).value= "valable";
                     }
                     else
                     {
-                         document.getElementById(data_form[i][16]).value= "FAUX";
+                        document.getElementById(data_form[i][16]).value= "non valable";
+                    }
+
+                    var val13=document.getElementById(data_form[i][15]).value;
+                    var val14=document.getElementById(data_form[i][16]).value
+                    if(val13==val14)
+                    {
+                         document.getElementById(data_form[i][8]).value= "VRAI";
+                    }
+                    else
+                    {
+                         document.getElementById(data_form[i][8]).value= "FAUX";
                     }
 
                 }
@@ -625,7 +640,7 @@ function myFunction()
                 }
             }
             break;
-        case "silicate":
+        case "SIL 650":
             var concentration= {{array_concentration|safe}};
             var absorbance= {{array_absorbance|safe}};
 
@@ -646,7 +661,29 @@ function myFunction()
 
             }
             break;
-        case "silice" :
+        case "SIL 815":
+            var concentration= {{array_concentration|safe}};
+            var absorbance= {{array_absorbance|safe}};
+
+            for(var i=0;i<nb_echantillon;i++)
+            {
+                var a= parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
+                var facteur= parseFloat((document.getElementById(data_form[i][1]).value).replace(",","."));
+                var val =forecast(a,concentration,absorbance);
+                if(val> 1000)
+                {
+                    document.getElementById(data_form[i][2]).value = "hors gamme";
+                }
+                else
+                {
+                    document.getElementById(data_form[i][2]).value = parseFloat(val*facteur).toFixed(2);
+                }
+
+
+            }
+            break;
+
+        case "SIL-BC" :
             var concentration= {{array_concentration|safe}};
             var absorbance= {{array_absorbance|safe}};
             for(var i=0;i<nb_echantillon;i++)
@@ -675,7 +712,7 @@ function myFunction()
 }
 </script>
 
-//Autocomplétion
+<!--Autocomplétion -->
 <script>
 var type= "{{ choix }}";
 var nb_echantillon={{nb_echantillon}};
@@ -813,7 +850,7 @@ switch(type)
         });
         break;
 
-    case "silice":
+    case "SIL-BC":
         $("#"+data_form[0][1]).on("focusout",function(){
             var valeur=document.getElementById(data_form[0][1]).value;
 
@@ -902,7 +939,19 @@ switch(type)
 
         break;
 
-    case "silicate":
+    case "SIL 650":
+        $("#"+data_form[0][1]).on("focusout",function(){
+            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
+
+            for(var i=1;i<nb_echantillon;i++)
+            {
+                $("#"+data_form[i][1]).val(valeur);
+            }
+
+        });
+        break;
+
+    case "SIL 815":
         $("#"+data_form[0][1]).on("focusout",function(){
             var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
 
@@ -915,29 +964,29 @@ switch(type)
         break;
 
     case "dbo avec dilution":
-        $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur= document.getElementById(data_form[0][0]).value;
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][0]).val(valeur);
-            }
-
-        });
         $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][1]).value;
-
+            var valeur= document.getElementById(data_form[0][1]).value;
             for(var i=1;i<nb_echantillon;i++)
             {
                 $("#"+data_form[i][1]).val(valeur);
             }
 
         });
-        $("#"+data_form[0][8]).on("focusout",function(){
-            var valeur= document.getElementById(data_form[0][8]).value;
+        $("#"+data_form[0][3]).on("focusout",function(){
+            var valeur=document.getElementById(data_form[0][3]).value;
 
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][8]).val(valeur);
+                $("#"+data_form[i][3]).val(valeur);
+            }
+
+        });
+        $("#"+data_form[0][4]).on("focusout",function(){
+            var valeur= document.getElementById(data_form[0][4]).value;
+
+            for(var i=1;i<nb_echantillon;i++)
+            {
+                $("#"+data_form[i][4]).val(valeur);
             }
 
         });

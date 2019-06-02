@@ -74,65 +74,66 @@ def import_data(request):
     dico3 = {'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
              'taux de siccité (%)': 'siccite',
              'matières volatiles sèches': 'matiere seche et mvs',
-             'matières en suspension (filtre what': 'mest',
+             'matières en suspension (filtre what': 'MES',
              'dem. chim. en oxygène': 'dco',
              'azote kjeldahl (en n)': 'ntk',
-             'silicates solubles (en mg/l de sio2)': 'silicate',
+             'silicates solubles (en mg/l de sio2)': 'SIL',
              'oxygène dissous (méthode iodométrique)': 'oxygene dissous',
              'chlorophylle alpha': 'chlorophylle',
              'agents de surface': 'sabm',
              'résidu sec à 180°c': 'residu sec',
-             'silicates solubles (µmol/l sio2)': 'silice',
+             'silicates solubles (µmol/l sio2)': 'SIL-BC',
              'dbo5': 'dbo5'}
 
     if 'valider' in request.POST:
-        myfile = request.FILES["myfile"]
+        #Teste si myfile existe
+        myfile = request.FILES["myfile"] if 'myfile' in request.FILES else False
 
+        if myfile!= False:
+            if myfile.name.endswith('.TXT'):
+                paillasse_data = request.FILES['myfile'].read().decode('cp1252').split("\n")[:-1]
 
-        if myfile.name.endswith('.TXT'):
-            paillasse_data = request.FILES['myfile'].read().decode('cp1252').split("\n")[:-1]
+                for line in paillasse_data:
+                    ls = line.split(';')
+                    tmp = []
+                    ls[5] = ls[5].lower()
+                    for cle2 in dico3.keys():
+                        if cle2 in ls[5]:
+                            tmp.extend((ls[1], dico3[cle2]))
+                            dico1.append(tmp)
+                            if dico3[cle2] not in container_type:
+                                container_type.append(dico3[cle2])
 
-            for line in paillasse_data:
-                ls = line.split(';')
-                tmp = []
-                ls[5] = ls[5].lower()
-                for cle2 in dico3.keys():
-                    if cle2 in ls[5]:
-                        tmp.extend((ls[1], dico3[cle2]))
-                        dico1.append(tmp)
-                        if dico3[cle2] not in container_type:
-                            container_type.append(dico3[cle2])
+            elif myfile.name.endswith('.xls'):
+                unique = []
+                workbook = xlrd.open_workbook(file_contents=myfile.read())
+                sheet = workbook.sheet_by_index(0)
+                index_echantillon = -1
+                index_element = -1
+                for i in range(sheet.nrows):
+                    data = []
+                    row = sheet.row_values(i)
+                    for j in range(len(row)):
+                        if row[j] == "Echantillon":
+                            index_echantillon = j
+                        if row[j] == "Nom Elément":
+                            index_element = j
+                    if index_echantillon != -1 and index_element != -1:
+                        type = row[index_element].lower()
+                        for cle in dico3.keys():
+                            if cle in type:
+                                if row[index_echantillon] not in unique:
+                                    data.extend(([row[index_echantillon], dico3[cle]]))
+                                    dico1.append(data)
+                                    unique.append(row[index_echantillon])
+                                    if dico3[cle] not in container_type:
+                                        container_type.append(dico3[cle])
 
-        elif myfile.name.endswith('.xls'):
-            unique = []
-            workbook = xlrd.open_workbook(file_contents=myfile.read())
-            sheet = workbook.sheet_by_index(0)
-            index_echantillon = -1
-            index_element = -1
-            for i in range(sheet.nrows):
-                data = []
-                row = sheet.row_values(i)
-                for j in range(len(row)):
-                    if row[j] == "Echantillon":
-                        index_echantillon = j
-                    if row[j] == "Nom Elément":
-                        index_element = j
-                if index_echantillon != -1 and index_element != -1:
-                    type = row[index_element].lower()
-                    for cle in dico3.keys():
-                        if cle in type:
-                            if row[index_echantillon] not in unique:
-                                data.extend(([row[index_echantillon], dico3[cle]]))
-                                dico1.append(data)
-                                unique.append(row[index_echantillon])
-                                if dico3[cle] not in container_type:
-                                    container_type.append(dico3[cle])
-
-        # return render(request,'myapp/test.html',locals())
-        request.session['type_analyses'] = container_type
-        request.session['type_analyses_echantillon'] = dico1
-        request.session['type_analyses_echantillon_save'] = dico1
-        return redirect(choix_analyse)
+            # return render(request,'myapp/test.html',locals())
+            request.session['type_analyses'] = container_type
+            request.session['type_analyses_echantillon'] = dico1
+            request.session['type_analyses_echantillon_save'] = dico1
+            return redirect(choix_analyse)
 
     return render(request, 'myapp/import_data.html')
 
@@ -144,7 +145,7 @@ def choix_analyse(request):
         if request.method == 'POST':
             choix = request.POST['choix']
             request.session['choix'] = choix
-            if choix in ["dbo5","chlorophylle"]:
+            if choix in ["dbo5","chlorophylle","SIL"]:
                 return redirect(choix_specifique2)
 
             type_analyse = Type_analyse.objects.filter(nom=choix)
@@ -186,7 +187,7 @@ def choix_specifique1(request):
         echantillon_selected_and_analyse=[]
 
         for elmt in echantillon:
-            if choix in elmt[1]:
+            if choix == elmt[1]:
                 echantillon_specifique.append(elmt[0])
         if request.method == 'POST':
             choix_echantillons = request.POST.getlist('checks')
@@ -212,8 +213,10 @@ def choix_specifique2(request):
             choix_multiple=['dbo avec dilution','dbo sans dilution']
         if choix == "chlorophylle":
             choix_multiple=['chlorophylle lorenzen','chlorophylle scor unesco']
+        if choix == "SIL":
+            choix_multiple=['SIL 650','SIL 815']
         for elmt in echantillon:
-            if choix in elmt[1]:
+            if choix == elmt[1]:
                 echantillon_specifique.append(elmt[0])
         if request.method == 'POST':
             choix_analyse= request.POST['radio_check']
@@ -257,6 +260,7 @@ def externe_data_feuille_calcul(request):
     if 'parametres_externe' in request.session and 'choix' in request.session :
         param_externe_analyse= list(request.session['parametres_externe'])
         choix=request.session['choix']
+        #Placement des paramètres qui génère des résultat à la première place
         if choix=="dco":
             for i in range(len(param_externe_analyse)):
                 if param_externe_analyse[i] == "var5_dco":
@@ -272,6 +276,11 @@ def externe_data_feuille_calcul(request):
                                                form=Feuille_calculForm,
                                                fields=param_externe_analyse,
                                                )
+        last_date_etalonnage=""
+        if choix in ['sabm', 'SIL-BC', 'SIL 650', 'SIL 815']:
+            last_feuille=Feuille_calcul.objects.filter(profil=profil[0],type_analyse=type_analyse[0])
+            if last_feuille.exists():
+                last_date_etalonnage=last_feuille[0].date_etalonnage
         if request.method == "POST":
             form = feuille_calculForm(request.POST, request.FILES)
             if form.is_valid():
@@ -280,13 +289,13 @@ def externe_data_feuille_calcul(request):
                 feuille_calcul.type_analyse =type_analyse[0]
                 feuille_calcul.save()
                 request.session['feuille_calcul_id'] = feuille_calcul.id
-                if choix in ['sabm','silice','silice ifremer','silicate'] :
+                if choix in ['sabm','SIL-BC','SIL 650','SIL 815']:
                     return redirect(fix_etalonnage)
                 else:
                     return redirect(feuille_calcul_data)
         else:
-            form = feuille_calculForm()
-        return render(request, 'myapp/externe_data.html',{'form': form})
+            form=feuille_calculForm()
+        return render(request, 'myapp/externe_data.html',{'form': form,"date_etalonnage":last_date_etalonnage})
 
 
 def feuille_calcul_data(request):
@@ -325,7 +334,7 @@ def feuille_calcul_data(request):
                     Echantillon.objects.get_or_create(numero="BLANC")
                     nb_echantillon += 2
                 num_echantillon2.append(num_echantillon[i])
-        elif choix=="mest" or choix == "dbo avec dilution":
+        elif choix == "MES" :
             for i in range(len(num_echantillon)):
                 if i == 0:
                     num_echantillon2.append("CTRL")
@@ -334,7 +343,7 @@ def feuille_calcul_data(request):
                     Echantillon.objects.get_or_create(numero="BLANC")
                     nb_echantillon += 2
                 num_echantillon2.append(num_echantillon[i])
-        elif choix == "dco":
+        elif choix == "dco" or choix == "dbo avec dilution":
             for i in range(len(num_echantillon)):
                 if i == 0:
                     num_echantillon2.append("CTRL")
@@ -368,12 +377,16 @@ def feuille_calcul_data(request):
                 nb_echantillon += 3
                 num_echantillon2.append(num_echantillon[i])
 
-        elif choix == "silice" or choix == "silicate" :
+        elif choix == "SIL-BC" or choix == "SIL 650" or choix == "SIL 815":
             set_etalonnage = Etalonnage.objects.filter(profil=profil[0],
                                                        type_analyse=feuille_calcul[0].type_analyse)[::-1]
-            if choix =="silice":
+            if choix =="SIL-BC":
                 for etalonnage in set_etalonnage:
                     array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
+                    array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+            elif choix == "SIL 815":
+                for etalonnage in set_etalonnage:
+                    array_concentration.append(float((etalonnage.c_micro_gl).replace(',','.')))
                     array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
             else:
                 for etalonnage in set_etalonnage:
@@ -477,15 +490,15 @@ def feuille_calcul_data(request):
                                                     'var7_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
                                                     'var9_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
                                                     'var10_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_silicate': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_sil_650': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_sil_815': forms.TextInput(attrs={'readonly': True}),
                                                     'var4_oxygene_dissous': forms.TextInput(attrs={'readonly': True}),
                                                     'var10_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
                                                     'var11_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
                                                     'var4_sabm':forms.TextInput(attrs={'readonly': True}),
                                                     'var5_residu_sec':forms.TextInput(attrs={'readonly': True}),
                                                     'var6_residu_sec': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_silice_ifremer': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_silice': forms.TextInput(attrs={'readonly': True}),
+                                                    'var3_sil_bc': forms.TextInput(attrs={'readonly': True}),
                                                     'var8_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
                                                     'var9_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
                                                     'var10_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
@@ -614,17 +627,22 @@ def fix_etalonnage(request):
                                                     'c_lauryl': forms.TextInput(attrs={'readonly': True}),
                                                     'c_mg': forms.TextInput(attrs={'readonly': True}),
                                                     'c_micromol_l' : forms.TextInput(attrs={'readonly': True}),
+                                                    'c_micro_gl': forms.TextInput(attrs={'readonly': True})
                                                 })
         formset = etalonnageFormset(request.POST, request.FILES)
         #la requête dans le queryset permet de créer un ensemble d'étalonnage par profil et analyse
         if choix == "sabm":
             etalonnageFormset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
                                               queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0]))
-        elif choix == "silicate":
+        elif choix == "SIL 650":
             etalonnageFormset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],
                                                                                      type_analyse=type_analyse[0]))
-        elif choix == "silice":
+        elif choix == "SIL 815":
+            etalonnageFormset = etalonnageFormset(initial=[{'c_micro_gl': x} for x in ['0', '20', '50', '100', '500', '1000']],
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
+                                                                                     type_analyse=type_analyse[0]))
+        elif choix == "SIL-BC":
             etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],
                                                                                      type_analyse=type_analyse[0]))

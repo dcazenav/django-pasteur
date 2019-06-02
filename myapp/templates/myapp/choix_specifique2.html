@@ -31,9 +31,15 @@ text-align: center;
         <tbody>
         {%for elmt in choix_multiple%}
         <tr>
-            <td style="text-align: left;padding: 5px;">
-                <input type="radio" name="radio_check" value="{{elmt}}" />{{elmt}}
-            </td>
+            {% if forloop.first %}
+                <td style="text-align: left;padding: 5px;">
+                    <input type="radio" name="radio_check" value="{{elmt}}" checked/>{{elmt}}
+                </td>
+            {% else %}
+                <td style="text-align: left;padding: 5px;">
+                    <input type="radio" name="radio_check" value="{{elmt}}" />{{elmt}}
+                </td>
+            {% endif %}
         </tr>
         {% endfor %}
 
@@ -46,7 +52,7 @@ text-align: center;
         {% for elmt in echantillon %}
         <tr>
             <td style="text-align: center;padding: 5px;">
-                <input type="checkbox" name="checks" value="{{elmt}}" />{{elmt}}
+                <input type="checkbox" name="checks" value="{{elmt}}" checked />{{elmt}}
             </td>
         </tr>
         {% endfor %}

@@ -9,6 +9,13 @@
 <div class="row">
 <h1> Renseignez les données suivantes </h1>
 </div>
+<br/>
+{% if date_etalonnage != "" %}
+La dernière date d'étalonnage est: {{date_etalonnage}}
+<br/>
+<br/>
+{% endif %}
+
 <div class="row">
 <div class="col-lg-6">
     <form  autocomplete="off" action="" method="post">
@@ -36,16 +43,16 @@
 
 
 $("#id_ox_1").on("focusout",function(){
-    val=parseFloat((document.getElementById("id_ox_1").value).replace(",","."));
-    result= (2*5*20)/val;
+    var val=parseFloat((document.getElementById("id_ox_1").value).replace(",","."));
+    var result= (2*5*20)/val;
   $("#id_ox_2").val(result);
 });
 
 $("#id_dco_1").on("focusout",function(){
     if(document.getElementById("id_dco_1").value!="")
     {
-        val=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
-        result= 1.2/val;
+        var val=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
+        var result= 1.2/val;
         $("#id_dco_2").val(result);
     }
     else
@@ -55,8 +62,8 @@ $("#id_dco_1").on("focusout",function(){
 $("#id_dco_3").on("focusout",function(){
     if(document.getElementById("id_dco_3").value!="")
     {
-        val1=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
-        val2=parseFloat((document.getElementById("id_dco_3").value).replace(",","."));
+        var val1=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
+        var val2=parseFloat((document.getElementById("id_dco_3").value).replace(",","."));
         if(Math.abs(val2-val1)<0.5)
         {
             $("#id_dco_4").val("Blanc conforme");

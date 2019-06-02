@@ -24,7 +24,7 @@ def export_xls_f(id_feuille_calcul):
     codification={
                 "kmno4": "ETE8/01-C",
                 "siccite": "DE/TE8/Ceau 49",
-                "mest": "ETE8/05-C",
+                "MES": "ETE8/05-C",
                 "dco": "ETE8/09-C",
                 "ntk": "ETE8/10-C",
                 "residu sec": "ETE8/69-C",
@@ -34,8 +34,9 @@ def export_xls_f(id_feuille_calcul):
                 "chlorophylle scor unesco": "ETE8/42-C",
                 "oxygene dissous": "ETE8/38-C",
                 "sabm": "ETE8/56-C",
-                "silicate":"ETE8/16-C",
-                "silice":"ETE8/70-C",
+                "SIL 650":"ETE8/16-C",
+                "SIL 815":"ETE8/16-C",
+                "SIL-BC":"ETE8/70-C",
                 "matiere seche et mvs":"DE/TE08/Ceau/91"
     }
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
@@ -62,7 +63,7 @@ def export_xls_f(id_feuille_calcul):
         dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
         entete_data_externe.append(liste_param_externe[cpt])
 
-    if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
+    if feuille_calcul[0].type_analyse.nom in ["sabm","SIL 650","SIL 815","SIL-BC"]:
         dico["Etalonnage réalisé par"] = profil.user.first_name + " " + profil.user.last_name
         entete_data_externe.append( "Etalonnage réalisé par")
     else:
@@ -70,7 +71,7 @@ def export_xls_f(id_feuille_calcul):
         entete_data_externe.append( "Analyse réalisé par")
 
     path = ""
-    if feuille_calcul[0].type_analyse.nom in ["sabm","silice","silice ifremer","silicate"]:
+    if feuille_calcul[0].type_analyse.nom in ["sabm","SIL-BC","SIL 650","SIL 815"]:
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
         parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
         if parametre_etalonnage[0] == "Absorbance":
@@ -174,7 +175,7 @@ def export_pdf_f(id_feuille_calcul):
     codification = {
         "kmno4": "ETE8/01-C",
         "siccite": "DE/TE8/Ceau 49",
-        "mest": "ETE8/05-C",
+        "MES": "ETE8/05-C",
         "dco": "ETE8/09-C",
         "ntk": "ETE8/10-C",
         "residu sec": "ETE8/69-C",
@@ -184,8 +185,9 @@ def export_pdf_f(id_feuille_calcul):
         "chlorophylle scor unesco": "ETE8/42-C",
         "oxygene dissous": "ETE8/38-C",
         "sabm": "ETE8/56-C",
-        "silicate": "ETE8/16-C",
-        "silice": "ETE8/70-C",
+        "SIL 650": "ETE8/16-C",
+        "SIL 815": "ETE8/16-C",
+        "SIL-BC": "ETE8/70-C",
         "matiere seche et mvs": "DE/TE08/Ceau/91"
     }
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
@@ -212,7 +214,7 @@ def export_pdf_f(id_feuille_calcul):
     for cpt in range(len(param_externe_analyse)):
         entete_data_externe.append(liste_param_externe[cpt])
         info_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
-    if feuille_calcul[0].type_analyse.nom in ["sabm","silicate","silice"]:
+    if feuille_calcul[0].type_analyse.nom in ["sabm","SIL 650","SIL 815","SIL-BC"]:
         entete_data_externe.append("Etalonnage réalisé par")
         info_data_extern_pdf.append(["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name])
     else:
@@ -224,7 +226,7 @@ def export_pdf_f(id_feuille_calcul):
         nested.append(info_data_extern_pdf[x:x + 2])
 
     path = ""
-    if feuille_calcul[0].type_analyse.nom in ["sabm", "silice", "silice ifremer", "silicate"]:
+    if feuille_calcul[0].type_analyse.nom in ["sabm", "SIL-BC", "SIL 650","SIL 815"]:
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\" + profil.user.username + "\\" + \
                feuille_calcul[0].type_analyse.nom + ".png"
         parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur',

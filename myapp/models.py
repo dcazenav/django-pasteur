@@ -51,6 +51,7 @@ class Etalonnage(models.Model):
     c_lauryl = models.CharField(max_length=100, verbose_name="concentration mg/L de lauryl sulfate de sodium")
     c_mg = models.CharField(max_length=100, verbose_name="concentration mg/L")
     c_micromol_l= models.CharField(max_length=100, verbose_name="concentration µmol/L")
+    c_micro_gl= models.CharField(max_length=100, verbose_name="concentration en µg/L",default="null")
     absorbance= models.CharField(max_length=100, verbose_name="absorbance")
 
 
@@ -169,7 +170,7 @@ class Analyse(models.Model):
     var14_dbo_avec_dilution = models.CharField(max_length=60, verbose_name="DBO")
     var15_dbo_avec_dilution = models.CharField(max_length=60, verbose_name="C1/3 <(C1-C2)")
     var16_dbo_avec_dilution = models.CharField(max_length=60, verbose_name="(C1-C2)<2*C1/3")
-    var17_dbo_avec_dilution = models.CharField(max_length=60, verbose_name="Controle")
+    var17_dbo_avec_dilution = models.CharField(max_length=60, verbose_name="'")
     #DBO sans dilution
     var1_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure1 [O2]t0")
     var2_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure1 [O2]t5")
@@ -181,10 +182,10 @@ class Analyse(models.Model):
     var8_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r théorique")
     var9_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="limite de controle")
     var10_dbo_sans_dilution  = models.CharField(max_length=60, verbose_name="controle")
-    #silicate soluble
-    var1_silicate = models.CharField(max_length=60, verbose_name="absorbance")
-    var2_silicate = models.CharField(max_length=60, verbose_name="facteur de dilution")
-    var3_silicate = models.CharField(max_length=60, verbose_name="concentration en mg/L SIO2")
+    #sil 650
+    var1_sil_650 = models.CharField(max_length=60, verbose_name="absorbance")
+    var2_sil_650 = models.CharField(max_length=60, verbose_name="facteur de dilution")
+    var3_sil_650 = models.CharField(max_length=60, verbose_name="concentration en mg/L SIO2")
     #oxygene dissous
     var1_oxygene_dissous = models.CharField(max_length=60, verbose_name="v1(mL) volume échantillon titré")
     var2_oxygene_dissous = models.CharField(max_length=60, verbose_name="v2 (mL) volume thiosulfate versé")
@@ -214,14 +215,14 @@ class Analyse(models.Model):
     var4_residu_sec = models.CharField(max_length=60, verbose_name="V volume de la prise d'essai en mL")
     var5_residu_sec = models.CharField(max_length=60, verbose_name="RS en mg/L à 105°C")
     var6_residu_sec = models.CharField(max_length=60, verbose_name="RS en mg/L à 180°C")
-    #silice eau de mer ifremer
-    var1_silice_ifremer = models.CharField(max_length=60, verbose_name="absorbance")
-    var2_silice_ifremer = models.CharField(max_length=60, verbose_name="facteur de dilution")
-    var3_silice_ifremer = models.CharField(max_length=60, verbose_name="concentration en SiO2 µmol/L")
-    #silice eau de mer
-    var1_silice = models.CharField(max_length=60, verbose_name="absorbance")
-    var2_silice = models.CharField(max_length=60, verbose_name="facteur de dilution")
-    var3_silice = models.CharField(max_length=60, verbose_name="concentration en SiO2 µmol")
+    #silice 815
+    var1_sil_815 = models.CharField(max_length=60, verbose_name="absorbance")
+    var2_sil_815 = models.CharField(max_length=60, verbose_name="facteur de dilution")
+    var3_sil_815 = models.CharField(max_length=60, verbose_name="concentration en SiO2 µg/L")
+    #SIL-BC
+    var1_sil_bc = models.CharField(max_length=60, verbose_name="absorbance")
+    var2_sil_bc = models.CharField(max_length=60, verbose_name="facteur de dilution")
+    var3_sil_bc = models.CharField(max_length=60, verbose_name="concentration en SiO2 µmol")
     #chlorophylle Lorenzen
     var1_chlorophylle_lorenzen = models.CharField(max_length=60, verbose_name="volume prélevé (L)")
     var2_chlorophylle_lorenzen = models.CharField(max_length=60, verbose_name="blc 665")
