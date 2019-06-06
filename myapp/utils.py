@@ -22,22 +22,22 @@ def export_xls_f(id_feuille_calcul):
     parametre_etalonnage=""
     concentration_and_absorbance = {}
     codification={
-                "kmno4": "ETE8/01-C",
-                "siccite": "DE/TE8/Ceau 49",
-                "MES": "ETE8/05-C",
-                "dco": "ETE8/09-C",
-                "ntk": "ETE8/10-C",
-                "residu sec": "ETE8/69-C",
-                "chlorophylle lorenzen": "ETE8/42-C",
-                "dbo avec dilution": "ETE8/13-C",
-                "dbo sans dilution": "ETE8/14-C",
-                "chlorophylle scor unesco": "ETE8/42-C",
-                "oxygene dissous": "ETE8/38-C",
-                "sabm": "ETE8/56-C",
-                "SIL 650":"ETE8/16-C",
-                "SIL 815":"ETE8/16-C",
-                "SIL-BC":"ETE8/70-C",
-                "matiere seche et mvs":"DE/TE08/Ceau/91"
+                "kmno4": ["ETE8/01-C","7 juin 2019","Rev 4"],
+                "siccite": ["DE/TE8/Ceau 49","7 juin 2019","Rev 2"],
+                "MES": ["ETE8/05-C","7 juin 2019","Rev 1"],
+                "dco": ["ETE8/09-C","7 juin 2019","Rev 5"],
+                "ntk": ["ETE8/10-C","7 juin 2019","Rev 3"],
+                "residu sec": ["ETE8/69-C","7 juin 2019","Rev 1"],
+                "chlorophylle lorenzen": ["ETE8/42-C","7 juin 2019","Rev 2"],
+                "dbo avec dilution": ["ETE8/13-C","7 juin 2019","Rev 3"],
+                "dbo sans dilution": ["ETE8/14-C","7 juin 2019","Rev3"],
+                "chlorophylle scor unesco": ["ETE8/42-C","7 juin 2019","Rev 1"],
+                "oxygene dissous": ["ETE8/38-C","7 juin 2019","Rev 1"],
+                "sabm": ["ETE8/56-C","7 juin 2019","Rev 1"],
+                "SIL 650": ["ETE8/16-C","7 juin 2019","Rev 5"],
+                "SIL 815": ["ETE8/16-C","7 juin 2019","Rev 5"],
+                "SIL-BC": ["ETE8/70-C","7 juin 2019","Rev 1"],
+                "matiere seche et mvs": ["DE/TE08/Ceau/91","7 juin 2019","Rev 3"]
     }
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
@@ -105,7 +105,9 @@ def export_xls_f(id_feuille_calcul):
     num_col=2
 
     ws.write(row_num,3,"Feuille de calcul "+feuille_calcul[0].type_analyse.nom,gras_base)
-    ws.write(row_num,5,"Codification: "+codification[feuille_calcul[0].type_analyse.nom],gras_base)
+    ws.write(row_num,5,"Codification: "+codification[feuille_calcul[0].type_analyse.nom][0],gras_base)
+    ws.write(row_num, 6, "Date de révision: " + codification[feuille_calcul[0].type_analyse.nom][1], gras_base)
+    ws.write(row_num, 7,codification[feuille_calcul[0].type_analyse.nom][2], gras_base)
     row_num+=2
     for key,value in dico.items():
         if num_col > 6:
@@ -173,22 +175,22 @@ def export_pdf_f(id_feuille_calcul):
     concentration_and_absorbance = {}
     info_data_extern_pdf = []
     codification = {
-        "kmno4": "ETE8/01-C",
-        "siccite": "DE/TE8/Ceau 49",
-        "MES": "ETE8/05-C",
-        "dco": "ETE8/09-C",
-        "ntk": "ETE8/10-C",
-        "residu sec": "ETE8/69-C",
-        "chlorophylle lorenzen": "ETE8/42-C",
-        "dbo avec dilution": "ETE8/13-C",
-        "dbo sans dilution": "ETE8/14-C",
-        "chlorophylle scor unesco": "ETE8/42-C",
-        "oxygene dissous": "ETE8/38-C",
-        "sabm": "ETE8/56-C",
-        "SIL 650": "ETE8/16-C",
-        "SIL 815": "ETE8/16-C",
-        "SIL-BC": "ETE8/70-C",
-        "matiere seche et mvs": "DE/TE08/Ceau/91"
+        "kmno4": ["ETE8/01-C", "7 juin 2019", "Rev 4"],
+        "siccite": ["DE/TE8/Ceau 49", "7 juin 2019", "Rev 2"],
+        "MES": ["ETE8/05-C", "7 juin 2019", "Rev 1"],
+        "dco": ["ETE8/09-C", "7 juin 2019", "Rev 5"],
+        "ntk": ["ETE8/10-C", "7 juin 2019", "Rev 3"],
+        "residu sec": ["ETE8/69-C", "7 juin 2019", "Rev 1"],
+        "chlorophylle lorenzen": ["ETE8/42-C", "7 juin 2019", "Rev 2"],
+        "dbo avec dilution": ["ETE8/13-C", "7 juin 2019", "Rev 3"],
+        "dbo sans dilution": ["ETE8/14-C", "7 juin 2019", "Rev3"],
+        "chlorophylle scor unesco": ["ETE8/42-C", "7 juin 2019", "Rev 1"],
+        "oxygene dissous": ["ETE8/38-C", "7 juin 2019", "Rev 1"],
+        "sabm": ["ETE8/56-C", "7 juin 2019", "Rev 1"],
+        "SIL 650": ["ETE8/16-C", "7 juin 2019", "Rev 5"],
+        "SIL 815": ["ETE8/16-C", "7 juin 2019", "Rev 5"],
+        "SIL-BC": ["ETE8/70-C", "7 juin 2019", "Rev 1"],
+        "matiere seche et mvs": ["DE/TE08/Ceau/91", "7 juin 2019", "Rev 3"]
     }
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
@@ -250,7 +252,11 @@ def export_pdf_f(id_feuille_calcul):
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
     # find the template and render it.
-    html = render_to_string('myapp/rendu_analyse_pdf.html',
+    if feuille_calcul[0].type_analyse.nom in ["chlorophylle lorenzen","chlorophylle scor unesco","dbo sans dilution","dbo avec dilution"]:
+        template="myapp/rendu_analyse_pdf_paysage.html"
+    else:
+        template = "myapp/rendu_analyse_pdf_portrait.html"
+    html = render_to_string(template,
                             {'data_externe': nested, 'param_interne_analyse': liste_param_interne,
                              'valeur_interne_feuille': liste_analyses, 'path': path,
                              'parametre_etalonnage': parametre_etalonnage,

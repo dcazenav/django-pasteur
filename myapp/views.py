@@ -40,6 +40,17 @@ def deconnexion(request):
         analyses = Analyse.objects.filter(feuille_calcul=elmt)
         if not analyses.exists():
             elmt.delete()
+
+    #Nettoyage de la session
+    key_session = ['type_analyses', 'choix', 'type_analyses_echantillon', 'parametres_externe', 'feuille_calcul_id',
+                   'les_parametres']
+    key_delete = []
+    for key in request.session.keys():
+        if key in key_session:
+            key_delete.append(key)
+    for elmnt in key_delete:
+        del request.session[elmnt]
+
     logout(request)
     return redirect(connexion)
 
@@ -61,13 +72,7 @@ def index_feuille_calcul(request):
 
 
 def import_data(request):
-    key_session=['type_analyses','choix','type_analyses_echantillon','parametres_externe','feuille_calcul_id','les_parametres']
-    key_delete=[]
-    for key in request.session.keys():
-        if key in key_session:
-            key_delete.append(key)
-    for elmnt in key_delete:
-        del request.session[elmnt]
+
 
     container_type = []
     dico1 = []
@@ -104,15 +109,17 @@ def import_data(request):
                             if dico3[cle2] not in container_type:
                                 container_type.append(dico3[cle2])
 
-            elif myfile.name.endswith('.xls'):
+            elif myfile.name.endswith('.xls') or myfile.name.endswith('.XLS') :
                 unique = []
                 workbook = xlrd.open_workbook(file_contents=myfile.read())
                 sheet = workbook.sheet_by_index(0)
                 index_echantillon = -1
                 index_element = -1
+                dico2={}
                 for i in range(sheet.nrows):
                     data = []
                     row = sheet.row_values(i)
+                    add= False
                     for j in range(len(row)):
                         if row[j] == "Echantillon":
                             index_echantillon = j
@@ -122,14 +129,21 @@ def import_data(request):
                         type = row[index_element].lower()
                         for cle in dico3.keys():
                             if cle in type:
-                                if row[index_echantillon] not in unique:
+                                if index_echantillon in dico2:
+                                    if cle not in dico2[index_echantillon]:
+                                        dico2[index_echantillon] +=[cle]
+                                        add = True
+                                else:
+                                    dico2[index_echantillon] = [cle]
+
+                                if row[index_echantillon] not in unique or add == True :
                                     data.extend(([row[index_echantillon], dico3[cle]]))
                                     dico1.append(data)
-                                    unique.append(row[index_echantillon])
+                                    if not add:
+                                        unique.append(row[index_echantillon])
                                     if dico3[cle] not in container_type:
                                         container_type.append(dico3[cle])
 
-            # return render(request,'myapp/test.html',locals())
             request.session['type_analyses'] = container_type
             request.session['type_analyses_echantillon'] = dico1
             request.session['type_analyses_echantillon_save'] = dico1
@@ -310,6 +324,11 @@ def feuille_calcul_data(request):
     static_name_fig=""
     error = False
     if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
+        change=""
+        if "change" in request.session:
+            change=request.session["change"]
+
+
         type_analyses_echantillon = request.session['type_analyses_echantillon']
         param_interne_analyse= request.session['les_parametres']
         choix= request.session['choix']
@@ -533,7 +552,8 @@ def feuille_calcul_data(request):
                                'static_name_fig': static_name_fig,
                                'parametre_etalonnage': parametre_etalonnage,
                                'concentration_and_absorbance': concentration_and_absorbance,
-                               'error': error
+                               'error': error,
+                               'change':change
                                })
 
         return render(request,'myapp/feuille_calcul.html',{'formset': formset,'nb_echantillon':nb_echantillon,
@@ -543,7 +563,8 @@ def feuille_calcul_data(request):
                                                            'static_name_fig':static_name_fig,
                                                            'parametre_etalonnage':parametre_etalonnage,
                                                            'concentration_and_absorbance':concentration_and_absorbance,
-                                                           'error':error
+                                                           'error':error,
+                                                           'change':change
                                                            })
 
 
@@ -556,10 +577,14 @@ def ajax_echantillon_add(request):
             choix=request.session['choix']
             echantillon_and_type =request.session['type_analyses_echantillon']
             localisation=request.session['localisation']
-            if pos !=300:
-                echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
-            else:
-                echantillon_and_type.append([numero, choix])
+            request.session["change"] = "Faux"
+            if localisation[pos] != -1:
+                if pos !=300:
+                    echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
+                else:
+                    echantillon_and_type.append([numero, choix])
+
+                request.session["change"]="Vrai"
             request.session['type_analyses_echantillon']= echantillon_and_type
             return HttpResponse('')
 
@@ -569,9 +594,11 @@ def ajax_echantillon_del(request):
     if 'type_analyses_echantillon' in request.session and 'localisation' in request.session:
         echantillon_and_type = request.session['type_analyses_echantillon']
         localisation = request.session['localisation']
+        request.session["change"] = "Faux"
         if pos != -10:
             if localisation[pos] != -1:
                 del echantillon_and_type[localisation[pos]]
+                request.session["change"] = "Vrai"
                 request.session['type_analyses_echantillon']= echantillon_and_type
         return HttpResponse('')
 

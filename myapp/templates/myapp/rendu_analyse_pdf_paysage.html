@@ -1,13 +1,18 @@
 <html>
-<head>
-    <title>Liste d'analyses </title>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8">
-</head>
-
 <style>
- @page {
+@page {
         size: letter landscape;
-        margin: 2cm;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
+            left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+        }
+        @frame content_frame {          /* Content Frame */
+            left: 50pt; width: 700pt; top: 90pt; height: 632pt;
+        }
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 50pt; width: 700pt; top: 550pt; height: 20pt;
+        }
     }
 .analyse table,
 .analyse th,
@@ -18,8 +23,12 @@ border: 1px solid black;
 .analyse th,
 .analyse td
 {
-padding: 5px;
-text-align: left;
+padding: 2px;
+text-align: center;
+}
+.analyse th,
+{
+font-size: 7px;
 }
 .table_absorbance table
 .table_absorbance th,
@@ -37,15 +46,54 @@ height:50px;
 height:30px;
 text-align: center;
 }
+#signature
+{
+text-align:center;
+}
+
+#cartouche
+{
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+#cartouche td
+{
+    padding: 5px;
+}
+.d1 {
+    text-align: left;
+}
+.d2 {
+    text-align:center;
+}
+.d3 {
+    text-align:right;
+}
 
 </style>
-<br/>
-<div style="border-bottom:1px solid #000;">
-<div align="left"><h1>Feuille de calcul {{nom_analyse}}</h1></div>
-<div align="right">Codification: {{codification}}</div>
+<head>
+    <title>Liste d'analyses </title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+</head>
+<div id="header_content">
+    <h1>Feuille de calcul {{nom_analyse}}</h1>
 </div>
- <br/>
-
+<div id="footer_content" style="text-align:right">
+<pdf:pagenumber>/<pdf:pagecount>
+</div>
+<table id="cartouche">
+    <tr>
+        <td class="d1">
+            Date de révision: {{codification.1}}
+        </td>
+        <td class="d2">
+            {{codification.2}}
+        </td>
+        <td class="d3">Codification: {{codification.0}}</td>
+    </tr>
+</table>
+<br/>
+<br/>
 <table>
 <tbody>
 {% for elmt1 in data_externe %}
@@ -92,7 +140,6 @@ text-align: center;
 {%endif%}
  <br/>
  <br/>
- <br/>
    <table class="analyse">
      <thead>
        <tr>
@@ -105,13 +152,19 @@ text-align: center;
        {% for analyse in valeur_interne_feuille %}
          <tr>
            {% for param in analyse %}
-           <td>{{param}}</td>
+             {% if forloop.first %}
+                <td style="font-size: 7px;">{{param}}</td>
+             {% else %}
+                <td>{{param}}</td>
+             {% endif %}
            {% endfor %}
          </tr>
        {% endfor %}
      </tbody>
    </table>
-
+<br/>
+<br/>
+<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-lABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
 
  </body>
 </html>

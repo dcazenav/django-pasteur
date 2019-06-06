@@ -213,6 +213,7 @@ function after_load()
    var regex = new RegExp('[a-zA-Z]');
    var etat= localStorage.getItem("etat");
    var index=  parseFloat(localStorage.getItem("index"));
+   var change="{{change}}";
    if(str!="")
    {
         str=str.split(",");
@@ -220,14 +221,8 @@ function after_load()
         {
 
             var valeur = localStorage.getItem(element);
-            if (etat === null)
-            {
-                if(regex.test(valeur)!=true )
-                    document.getElementById(element).value = parseFloat(valeur);
-                else
-                    document.getElementById(element).value = valeur.replace("%20"," ");
-            }
-            if(etat== "add")
+
+            if(etat== "add" && change == "Vrai")
             {
                 var i = element.match(new RegExp("-"+ "(.*)" + "-"))[1];
                 i=parseFloat(i);
@@ -249,7 +244,7 @@ function after_load()
                 }
 
             }
-            if(etat== "del")
+            else if(etat== "del" && change == "Vrai")
             {
                 var i = element.match(new RegExp("-"+ "(.*)" + "-"))[1];
                 i=parseFloat(i);
@@ -271,6 +266,13 @@ function after_load()
 
                 }
 
+            }
+            else
+            {
+                if(regex.test(valeur)!=true )
+                    document.getElementById(element).value = parseFloat(valeur);
+                else
+                    document.getElementById(element).value = valeur.replace("%20"," ");
             }
 
         });

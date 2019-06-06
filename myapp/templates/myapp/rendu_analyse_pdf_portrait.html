@@ -1,0 +1,161 @@
+<html>
+<style>
+@page {
+        size: a4 portrait;
+        @frame header_frame {           /* Static Frame */
+            -pdf-frame-content: header_content;
+            left: 50pt; width: 512pt; top: 50pt; height: 40pt;
+        }
+        @frame content_frame {          /* Content Frame */
+            left: 50pt; width: 512pt; top: 90pt; height: 632pt;
+        }
+        @frame footer_frame {           /* Another static Frame */
+            -pdf-frame-content: footer_content;
+            left: 50pt; width: 512pt; top: 772pt; height: 20pt;
+        }
+    }
+.analyse table,
+.analyse th,
+.analyse td
+{
+border: 1px solid black;
+}
+.analyse th,
+.analyse td
+{
+padding: 5px;
+text-align: left;
+}
+.table_absorbance table
+.table_absorbance th,
+.table_absorbance td
+{
+border: 1px solid black;
+}
+.table_absorbance th,
+{
+width:150px;
+height:50px;
+}
+.table_absorbance td
+{
+height:30px;
+text-align: center;
+}
+#signature
+{
+text-align:center;
+}
+
+#cartouche
+{
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+#cartouche td
+{
+    padding: 5px;
+}
+.d1 {
+    text-align: left;
+}
+.d2 {
+    text-align:center;
+}
+.d3 {
+    text-align:right;
+}
+
+</style>
+<head>
+    <title>Liste d'analyses </title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+</head>
+<div id="header_content">
+    <h1>Feuille de calcul {{nom_analyse}}</h1>
+</div>
+<div id="footer_content" style="text-align:right">
+<pdf:pagenumber>/<pdf:pagecount>
+</div>
+<table id="cartouche">
+    <tr>
+        <td class="d1">
+            Date de révision: {{codification.1}}
+        </td>
+        <td class="d2">
+            {{codification.2}}
+        </td>
+        <td class="d3">Codification: {{codification.0}}</td>
+    </tr>
+</table>
+<br/>
+<br/>
+<table>
+<tbody>
+{% for elmt1 in data_externe %}
+   <tr>
+       {%for elmt2 in elmt1%}
+       <td><strong>{{elmt2.0}} :</strong></td>
+       <td>{{elmt2.1}}</td>
+       {% endfor %}
+   </tr>
+{% endfor %}
+</tbody>
+</table>
+
+ <br/>
+ <br/>
+{% if path != "" %}
+<table>
+<tr>
+    <td>
+        <table class="table_absorbance">
+            <thead>
+            <tr>
+                {%for param in parametre_etalonnage %}
+                    <th>
+                    {{param}}
+                    </th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {%for key,value in concentration_and_absorbance.items %}
+                <tr>
+                    <td>{{key}} </td><td>{{value}}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </td>
+    <td>
+    <img class="image_graphe" src="{{path}}" alt="My image" width="300" height="300">
+    </td>
+</tr>
+</table>
+{%endif%}
+ <br/>
+ <br/>
+   <table class="analyse">
+     <thead>
+       <tr>
+         {% for elmt in param_interne_analyse %}
+         <th> {{elmt}}</th>
+         {% endfor %}
+       </tr>
+     </thead>
+     <tbody>
+       {% for analyse in valeur_interne_feuille %}
+         <tr>
+           {% for param in analyse %}
+           <td>{{param}}</td>
+           {% endfor %}
+         </tr>
+       {% endfor %}
+     </tbody>
+   </table>
+<br/>
+<br/>
+<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-lABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
+</body>
+</html>
