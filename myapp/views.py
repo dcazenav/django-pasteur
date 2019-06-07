@@ -1,5 +1,5 @@
 from django.shortcuts import render,redirect
-from .forms import ConnexionForm,Feuille_calculForm
+from .forms import ConnexionForm,Feuille_calculForm,AnalyseForm
 from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django import forms
@@ -475,55 +475,11 @@ def feuille_calcul_data(request):
             plt.clf()
 
         analyseFormset = modelformset_factory(Analyse,
+                                              form=AnalyseForm,
                                               fields=param_interne_analyse,
                                               max_num=nb_echantillon,
                                               min_num=nb_echantillon,
-                                              widgets=
-                                                {
-                                                    'nEchantillon': forms.TextInput(attrs={'readonly': False}),
-                                                    'var5_kmno4': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_siccite':forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_siccite': forms.TextInput(attrs={'readonly': True}),
-                                                    'var7_siccite':forms.TextInput(attrs={'readonly': True}),
-                                                    'var8_siccite': forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_mvs' : forms.TextInput(attrs={'readonly': True}),
-                                                    'var7_mvs': forms.TextInput(attrs={'readonly': True}),
-                                                    'var8_mvs': forms.TextInput(attrs={'readonly': True}),
-                                                    'var9_mvs': forms.TextInput(attrs={'readonly': True}),
-                                                    'var4_mest': forms.TextInput(attrs={'readonly': True}),
-                                                    'var4_dco' : forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_ntk' : forms.TextInput(attrs={'readonly': True}),
-                                                    'var5_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var7_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var8_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var11_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var12_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var13_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var14_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var15_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var16_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var17_dbo_avec_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var7_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var9_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var10_dbo_sans_dilution': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_sil_650': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_sil_815': forms.TextInput(attrs={'readonly': True}),
-                                                    'var4_oxygene_dissous': forms.TextInput(attrs={'readonly': True}),
-                                                    'var10_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
-                                                    'var11_chlorophylle_scor_unesco': forms.TextInput(attrs={'readonly': True}),
-                                                    'var4_sabm':forms.TextInput(attrs={'readonly': True}),
-                                                    'var5_residu_sec':forms.TextInput(attrs={'readonly': True}),
-                                                    'var6_residu_sec': forms.TextInput(attrs={'readonly': True}),
-                                                    'var3_sil_bc': forms.TextInput(attrs={'readonly': True}),
-                                                    'var8_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
-                                                    'var9_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
-                                                    'var10_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
-                                                    'var11_chlorophylle_lorenzen': forms.TextInput(attrs={'readonly': True}),
-
-                                                })
+                                              )
 
 
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()

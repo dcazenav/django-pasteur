@@ -78,6 +78,7 @@ text-align:center;
 <div id="header_content">
     <h1>Feuille de calcul {{nom_analyse}}</h1>
 </div>
+<body>
 <div id="footer_content" style="text-align:right">
 <pdf:pagenumber>/<pdf:pagecount>
 </div>
@@ -155,7 +156,7 @@ text-align:center;
              {% if forloop.first %}
                 <td style="font-size: 7px;">{{param}}</td>
              {% else %}
-                <td>{{param}}</td>
+                <td>{{param}} </td>
              {% endif %}
            {% endfor %}
          </tr>

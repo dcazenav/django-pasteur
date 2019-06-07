@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import datetime
+from django.forms import TextInput
 
 
 class Profil(models.Model):
@@ -175,13 +176,13 @@ class Analyse(models.Model):
     var1_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure1 [O2]t0")
     var2_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure1 [O2]t5")
     var3_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="valeur DBO1 mg/L")
-    var4_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure2 [O2]t0")
-    var5_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure2 [O2]t5")
-    var6_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="valeur DBO2 mg/L")
-    var7_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r expérimentale")
-    var8_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r théorique")
-    var9_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="limite de controle")
-    var10_dbo_sans_dilution  = models.CharField(max_length=60, verbose_name="controle")
+    var4_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure2 [O2]t0",blank=True)
+    var5_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="mesure2 [O2]t5",blank=True)
+    var6_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="valeur DBO2 mg/L",blank=True)
+    var7_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r expérimentale",blank=True)
+    var8_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r théorique",blank=True)
+    var9_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="limite de controle",blank=True)
+    var10_dbo_sans_dilution  = models.CharField(max_length=60, verbose_name="controle",blank=True)
     #sil 650
     var1_sil_650 = models.CharField(max_length=60, verbose_name="absorbance")
     var2_sil_650 = models.CharField(max_length=60, verbose_name="facteur de dilution")

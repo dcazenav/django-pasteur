@@ -71,6 +71,7 @@ text-align:center;
     <title>Liste d'analyses </title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
 </head>
+<body>
 <div id="header_content">
     <h1>Feuille de calcul {{nom_analyse}}</h1>
 </div>
@@ -148,7 +149,7 @@ text-align:center;
        {% for analyse in valeur_interne_feuille %}
          <tr>
            {% for param in analyse %}
-           <td>{{param}}</td>
+           <td>{{param}} </td>
            {% endfor %}
          </tr>
        {% endfor %}

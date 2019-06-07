@@ -78,7 +78,7 @@ div.dataTables_wrapper {
    <form  id="form" autocomplete="off" method="post" action="">
        {% csrf_token %}
        {{ formset.management_form }}
-           <table id="tab_feuille_calcul"  class="stripe row-border order-column" style="width:100%">
+           <table id="tab_feuille_calcul"  class="compact  row-border stripe hover" style="width:100%">
             {% for form in formset.forms %}
               {% if forloop.first %}
               <thead>
@@ -148,7 +148,7 @@ $(document).ready(function()
             'ordering':false,
             'paging':false,
             'searching':false,
-            scrollY:        300,
+            scrollY:        700,
             scrollX:        true,
             scrollCollapse: true,
             fixedColumns:
@@ -568,25 +568,33 @@ function myFunction()
                 {
                     document.getElementById(data_form[i][2]).value= parseFloat(m1_o2t0 - m1_o2t5).toFixed(2);
                 }
-                var m2_o2t0= parseFloat((document.getElementById(data_form[i][3]).value).replace(",","."));
-                var m2_o2t5= parseFloat((document.getElementById(data_form[i][4]).value).replace(",","."));
-                if(m2_o2t0 > 0)
+                var m2_o2t0="";
+                var m2_o2t5="";
+                if(document.getElementById(data_form[i][3]).value!="")
+                {
+                    m2_o2t0= parseFloat((document.getElementById(data_form[i][3]).value).replace(",","."));
+                }
+                if(document.getElementById(data_form[i][4]).value!="")
+                {
+                    m2_o2t5= parseFloat((document.getElementById(data_form[i][4]).value).replace(",","."));
+                }
+                if(m2_o2t0!="" && m2_o2t0 > 0)
                 {
                     document.getElementById(data_form[i][5]).value= parseFloat(m2_o2t0 - m2_o2t5).toFixed(2);
                 }
-                var dbo1= parseFloat((document.getElementById(data_form[i][2]).value).replace(",","."));
-                var dbo2= parseFloat((document.getElementById(data_form[i][5]).value).replace(",","."));
+                var dbo1= parseFloat((document.getElementById(data_form[0][2]).value).replace(",","."));
+                var dbo2= parseFloat((document.getElementById(data_form[0][5]).value).replace(",","."));
                 var val=((dbo1-dbo2)*100)/(0.5*(dbo1+dbo2));
                 val=Math.abs(val);
-                document.getElementById(data_form[i][6]).value= parseFloat(val).toFixed(2);
-                document.getElementById(data_form[i][8]).value= parseFloat(3.2678*4).toFixed(2);
-                var r_experimental= parseFloat((document.getElementById(data_form[i][6]).value).replace(",","."));
-                var r_théorique= parseFloat((document.getElementById(data_form[i][7]).value).replace(",","."));
-                var limite= parseFloat((document.getElementById(data_form[i][8]).value).replace(",","."));
+                document.getElementById(data_form[0][6]).value= parseFloat(val).toFixed(2);
+                document.getElementById(data_form[0][8]).value= parseFloat(3.2678*4).toFixed(2);
+                var r_experimental= parseFloat((document.getElementById(data_form[0][6]).value).replace(",","."));
+                var r_théorique= parseFloat((document.getElementById(data_form[0][7]).value).replace(",","."));
+                var limite= parseFloat((document.getElementById(data_form[0][8]).value).replace(",","."));
                 if(r_experimental <limite && r_experimental > r_théorique)
-                    document.getElementById(data_form[i][9]).value= "VRAI";
+                    document.getElementById(data_form[0][9]).value= "VRAI";
                 else
-                    document.getElementById(data_form[i][9]).value= "FAUX";
+                    document.getElementById(data_form[0][9]).value= "FAUX";
             }
             break;
         case "chlorophylle scor unesco":
