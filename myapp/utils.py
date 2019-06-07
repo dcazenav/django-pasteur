@@ -66,9 +66,9 @@ def export_xls_f(id_feuille_calcul):
     if feuille_calcul[0].type_analyse.nom in ["sabm","SIL 650","SIL 815","SIL-BC"]:
         dico["Etalonnage réalisé par"] = profil.user.first_name + " " + profil.user.last_name
         entete_data_externe.append( "Etalonnage réalisé par")
-    else:
-        dico["Analyse réalisé par"] = profil.user.first_name + " " + profil.user.last_name
-        entete_data_externe.append( "Analyse réalisé par")
+
+    dico["Analyse réalisé par"] = profil.user.first_name + " " + profil.user.last_name
+    entete_data_externe.append( "Analyse réalisé par")
 
     path = ""
     if feuille_calcul[0].type_analyse.nom in ["sabm","SIL-BC","SIL 650","SIL 815"]:
@@ -219,12 +219,12 @@ def export_pdf_f(id_feuille_calcul):
     if feuille_calcul[0].type_analyse.nom in ["sabm","SIL 650","SIL 815","SIL-BC"]:
         entete_data_externe.append("Etalonnage réalisé par")
         info_data_extern_pdf.append(["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name])
-    else:
-        entete_data_externe.append("Analyse réalisé par")
-        info_data_extern_pdf.append(["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name])
+
+    entete_data_externe.append("Analyse réalisé par")
+    info_data_extern_pdf.append(["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name])
     nested = []
     # array d'array composé de couple de deux array
-    for x in range(0, len(info_data_extern_pdf) - 1, 2):
+    for x in range(0, len(info_data_extern_pdf), 2):
         nested.append(info_data_extern_pdf[x:x + 2])
 
     path = ""
