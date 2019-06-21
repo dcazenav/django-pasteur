@@ -73,7 +73,6 @@ def index_feuille_calcul(request):
 
 def import_data(request):
 
-
     container_type = []
     dico1 = []
     dico3 = {'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
@@ -129,12 +128,12 @@ def import_data(request):
                         type = row[index_element].lower()
                         for cle in dico3.keys():
                             if cle in type:
-                                if index_echantillon in dico2:
-                                    if cle not in dico2[index_echantillon]:
-                                        dico2[index_echantillon] +=[cle]
+                                if row[index_echantillon] in dico2:
+                                    if cle not in dico2[row[index_echantillon]]:
+                                        dico2[row[index_echantillon]] +=[cle]
                                         add = True
                                 else:
-                                    dico2[index_echantillon] = [cle]
+                                    dico2[row[index_echantillon]] = [cle]
 
                                 if row[index_echantillon] not in unique or add == True :
                                     data.extend(([row[index_echantillon], dico3[cle]]))
@@ -212,6 +211,7 @@ def choix_specifique1(request):
             request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
             return redirect(externe_data_feuille_calcul)
         return render(request,'myapp/choix_specifique1.html',{'echantillon': echantillon_specifique})
+
 
 def choix_specifique2(request):
     if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
