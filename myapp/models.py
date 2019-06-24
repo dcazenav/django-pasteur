@@ -37,14 +37,25 @@ class Parametre_etalonnage(models.Model):
         return self.nom
 
 
+class Codification(models.Model):
+    code= models.CharField(max_length=100)
+    date_rev= models.DateField(auto_now=False)
+    revision= models.CharField(max_length=100)
+    intitule= models.CharField(max_length=100)
+    def __str__(self):
+        return self.code
+
+
 class Type_analyse(models.Model):
     nom = models.CharField(max_length=100)
     parametre_interne=models.ManyToManyField(Parametre_interne_analyse,blank=True)
     parametre_externe = models.ManyToManyField(Parametre_externe_analyse,blank=True)
     parametre_etalonnage = models.ManyToManyField(Parametre_etalonnage,blank=True)
+    codification = models.ForeignKey(Codification, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nom
+
 
 class Etalonnage(models.Model):
     profil= models.ForeignKey(Profil,on_delete=models.CASCADE)

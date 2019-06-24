@@ -220,7 +220,6 @@ def choix_specifique2(request):
         echantillon_specifique=[]
         choix_multiple=[]
         echantillon_selected_and_analyse=[]
-        les_parametres = []
         parametres_externe = []
 
         if choix =="dbo5":
@@ -240,27 +239,12 @@ def choix_specifique2(request):
                 echantillon_selected_and_analyse.append(couple)
 
             type_analyse = Type_analyse.objects.filter(nom=choix_analyse)
-            param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('nom', flat=True))
-            index_param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('rang', flat=True))
-
-            #Trie des parametres selon leur rang
-            for i in range(len(index_param_interne_analyse)):
-                for j in range(len(index_param_interne_analyse) - 1):
-                    if index_param_interne_analyse[i] < index_param_interne_analyse[j]:
-                        tmp1 = index_param_interne_analyse[i]
-                        tmp2 = param_interne_analyse[i]
-                        index_param_interne_analyse[i] = index_param_interne_analyse[j]
-                        param_interne_analyse[i] = param_interne_analyse[j]
-                        index_param_interne_analyse[j] = tmp1
-                        param_interne_analyse[j] = tmp2
 
             param_externe_analyse = type_analyse[0].parametre_externe.all().values_list('nom', flat=True)
 
-            for elmt in param_interne_analyse:
-                les_parametres.append(elmt)
             for elmt in param_externe_analyse:
                 parametres_externe.append(elmt)
-            request.session['les_parametres'] = les_parametres
+
             request.session['parametres_externe'] = parametres_externe
             request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
             request.session['choix']=choix_analyse
@@ -323,16 +307,18 @@ def feuille_calcul_data(request):
     concentration_and_absorbance = {}
     static_name_fig=""
     error = False
-    if 'type_analyses_echantillon' in request.session and 'les_parametres' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
+    if 'type_analyses_echantillon' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
         change=""
         if "change" in request.session:
             change=request.session["change"]
 
 
         type_analyses_echantillon = request.session['type_analyses_echantillon']
-        param_interne_analyse= request.session['les_parametres']
         choix= request.session['choix']
         feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
+        param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
+        index_param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+        param_interne_analyse= Trie(param_interne_analyse,index_param_interne_analyse)
         profil = Profil.objects.filter(user=request.user)
         nom_user= request.user.username
         path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp"+"\\"+nom_user
@@ -573,7 +559,6 @@ def export_analyse(request,id_feuille_calcul):
             return redirect(choix_analyse)
         if 'import' in request.POST:
             return redirect(import_data)
-
 
     return render(request, 'myapp/export_data.html', locals())
 

@@ -11,6 +11,8 @@ admin.site.register(models.Feuille_calcul)
 admin.site.register(models.Echantillon)
 admin.site.register(models.Etalonnage)
 admin.site.register(models.Parametre_etalonnage)
+admin.site.register(models.Codification)
+
 
 
 

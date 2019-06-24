@@ -7,6 +7,19 @@ import os.path
 from django.template.loader import render_to_string
 
 
+def Trie(param,index):
+    for i in range(len(index)):
+        for j in range(len(index) - 1):
+            if index[i] < index[j]:
+                tmp1 = index[i]
+                tmp2 = param[i]
+                index[i] = index[j]
+                param[i] = param[j]
+                index[j] = tmp1
+                param[j] = tmp2
+    return param
+
+
 def export_xls_f(id_feuille_calcul):
     feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
     profil=feuille_calcul[0].profil
@@ -21,24 +34,7 @@ def export_xls_f(id_feuille_calcul):
     entete_data_externe= []
     parametre_etalonnage=""
     concentration_and_absorbance = {}
-    codification={
-                "kmno4": ["ETE8/01-C","7 juin 2019","Rev 4"],
-                "siccite": ["DE/TE8/Ceau 49","7 juin 2019","Rev 2"],
-                "MES": ["ETE8/05-C","7 juin 2019","Rev 1"],
-                "dco": ["ETE8/09-C","7 juin 2019","Rev 5"],
-                "ntk": ["ETE8/10-C","7 juin 2019","Rev 3"],
-                "residu sec": ["ETE8/69-C","7 juin 2019","Rev 1"],
-                "chlorophylle lorenzen": ["ETE8/42-C","7 juin 2019","Rev 2"],
-                "dbo avec dilution": ["ETE8/13-C","7 juin 2019","Rev 3"],
-                "dbo sans dilution": ["ETE8/14-C","7 juin 2019","Rev3"],
-                "chlorophylle scor unesco": ["ETE8/42-C","7 juin 2019","Rev 1"],
-                "oxygene dissous": ["ETE8/38-C","7 juin 2019","Rev 1"],
-                "sabm": ["ETE8/56-C","7 juin 2019","Rev 1"],
-                "SIL 650": ["ETE8/16-C","7 juin 2019","Rev 5"],
-                "SIL 815": ["ETE8/16-C","7 juin 2019","Rev 5"],
-                "SIL-BC": ["ETE8/70-C","7 juin 2019","Rev 1"],
-                "matiere seche et mvs": ["DE/TE08/Ceau/91","7 juin 2019","Rev 3"]
-    }
+    codification=feuille_calcul[0].type_analyse.codification
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
     # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
@@ -104,10 +100,10 @@ def export_xls_f(id_feuille_calcul):
     cpt=0
     num_col=2
 
-    ws.write(row_num,3,"Feuille de calcul "+feuille_calcul[0].type_analyse.nom,gras_base)
-    ws.write(row_num,5,"Codification: "+codification[feuille_calcul[0].type_analyse.nom][0],gras_base)
-    ws.write(row_num, 6, "Date de révision: " + codification[feuille_calcul[0].type_analyse.nom][1], gras_base)
-    ws.write(row_num, 7,codification[feuille_calcul[0].type_analyse.nom][2], gras_base)
+    ws.write(row_num,3,codification.intitule,gras_base)
+    ws.write(row_num,5,"Codification: "+codification.code,gras_base)
+    ws.write(row_num, 6, "Date de révision: " + str(codification.date_rev), gras_base)
+    ws.write(row_num, 7,codification.revision, gras_base)
     row_num+=2
     for key,value in dico.items():
         if num_col > 6:
@@ -174,24 +170,7 @@ def export_pdf_f(id_feuille_calcul):
     parametre_etalonnage = ""
     concentration_and_absorbance = {}
     info_data_extern_pdf = []
-    codification = {
-        "kmno4": ["ETE8/01-C", "7 juin 2019", "Rev 4"],
-        "siccite": ["DE/TE8/Ceau 49", "7 juin 2019", "Rev 2"],
-        "MES": ["ETE8/05-C", "7 juin 2019", "Rev 1"],
-        "dco": ["ETE8/09-C", "7 juin 2019", "Rev 5"],
-        "ntk": ["ETE8/10-C", "7 juin 2019", "Rev 3"],
-        "residu sec": ["ETE8/69-C", "7 juin 2019", "Rev 1"],
-        "chlorophylle lorenzen": ["ETE8/42-C", "7 juin 2019", "Rev 2"],
-        "dbo avec dilution": ["ETE8/13-C", "7 juin 2019", "Rev 3"],
-        "dbo sans dilution": ["ETE8/14-C", "7 juin 2019", "Rev3"],
-        "chlorophylle scor unesco": ["ETE8/42-C", "7 juin 2019", "Rev 1"],
-        "oxygene dissous": ["ETE8/38-C", "7 juin 2019", "Rev 1"],
-        "sabm": ["ETE8/56-C", "7 juin 2019", "Rev 1"],
-        "SIL 650": ["ETE8/16-C", "7 juin 2019", "Rev 5"],
-        "SIL 815": ["ETE8/16-C", "7 juin 2019", "Rev 5"],
-        "SIL-BC": ["ETE8/70-C", "7 juin 2019", "Rev 1"],
-        "matiere seche et mvs": ["DE/TE08/Ceau/91", "7 juin 2019", "Rev 3"]
-    }
+    codification =feuille_calcul[0].type_analyse.codification
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
     # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
@@ -262,7 +241,7 @@ def export_pdf_f(id_feuille_calcul):
                              'parametre_etalonnage': parametre_etalonnage,
                              'concentration_and_absorbance': concentration_and_absorbance,
                              'nom_analyse': feuille_calcul[0].type_analyse.nom,
-                             'codification': codification[feuille_calcul[0].type_analyse.nom]
+                             'codification': codification
                              })
 
     # create a pdf
