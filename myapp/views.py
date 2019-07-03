@@ -3,9 +3,6 @@ from .forms import ConnexionForm,Feuille_calculForm,AnalyseForm
 from django.forms import modelformset_factory,modelform_factory
 from django.contrib.auth import authenticate,login,logout
 from django import forms
-import os.path,errno
-import numpy as np
-import matplotlib.pyplot as plt
 from .utils import *
 import xlrd
 
@@ -15,6 +12,7 @@ def connexion(request):
 
     if request.user.is_authenticated:
         return redirect(import_data)
+
     if request.method == "POST":
         form = ConnexionForm(request.POST)
         if form.is_valid():
@@ -23,6 +21,12 @@ def connexion(request):
             user = authenticate(username=username, password=password)  # Nous vérifions si les données sont correctes
             if user:  # Si l'objet renvoyé n'est pas None
                 login(request, user)  # nous connectons l'utilisateur
+                profil = Profil.objects.filter(user=request.user)
+                feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
+                for elmt in feuille_calcul:
+                    analyses = Analyse.objects.filter(feuille_calcul=elmt)
+                    if not analyses.exists():
+                        elmt.delete()
                 return redirect('myapp_import')
             else: # sinon une erreur sera affichée
                 error = True
@@ -33,7 +37,7 @@ def connexion(request):
 
 
 def deconnexion(request):
-    #Supression des feuilles de calcul vide
+    # Supression des feuilles de calcul vide
     profil = Profil.objects.filter(user=request.user)
     feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
     for elmt in feuille_calcul:
@@ -41,38 +45,27 @@ def deconnexion(request):
         if not analyses.exists():
             elmt.delete()
 
-    #Nettoyage de la session
-    key_session = ['type_analyses', 'choix', 'type_analyses_echantillon', 'parametres_externe', 'feuille_calcul_id',
-                   'les_parametres']
+    # Nettoyage de la session
+    key_session = ["_auth_user_id","_auth_user_backend","_auth_user_hash"]
     key_delete = []
     for key in request.session.keys():
-        if key in key_session:
+        if key not in key_session:
             key_delete.append(key)
-    for elmnt in key_delete:
-        del request.session[elmnt]
+    for key in key_delete:
+        del request.session[key]
 
     logout(request)
     return redirect(connexion)
 
 
-def index_feuille_calcul(request):
-    #Supression des feuilles de calcul vide et ajout des feuille de calcul contenant de l'information dans un array
-    # pour l'afficher à l'utilisateur. Les feuilles de calculs sont spécifiques à l'utilisateur courant.
-    profil=Profil.objects.filter(user=request.user)
-    feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
-    array_feuille_calcul=[]
-
-    for elmt in feuille_calcul:
-        analyses = Analyse.objects.filter(feuille_calcul=elmt)
-        if not analyses.exists():
-            elmt.delete()
-        else:
-            array_feuille_calcul.append(elmt)
-    return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':array_feuille_calcul})
+def index_feuille_calcul(request,username):
+    user=User.objects.filter(username=username)
+    profil=Profil.objects.filter(user=user[0])
+    feuille_calcul = list(Feuille_calcul.objects.filter(profil=profil[0]).order_by('-date_creation'))
+    return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':feuille_calcul})
 
 
 def import_data(request):
-
     container_type = []
     dico1 = []
     dico3 = {'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
@@ -85,11 +78,13 @@ def import_data(request):
              'oxygène dissous (méthode iodométrique)': 'oxygene dissous',
              'chlorophylle alpha': 'chlorophylle',
              'agents de surface': 'sabm',
+             'détergents anioniques':'sabm',
              'résidu sec à 180°c': 'residu sec',
              'silicates solubles (µmol/l sio2)': 'SIL-BC',
              'dbo5': 'dbo5'}
 
     if 'valider' in request.POST:
+        session_id = request.POST['session']
         #Teste si myfile existe
         myfile = request.FILES["myfile"] if 'myfile' in request.FILES else False
 
@@ -143,26 +138,26 @@ def import_data(request):
                                     if dico3[cle] not in container_type:
                                         container_type.append(dico3[cle])
 
-            request.session['type_analyses'] = container_type
-            request.session['type_analyses_echantillon'] = dico1
-            request.session['type_analyses_echantillon_save'] = dico1
-            return redirect(choix_analyse)
+            request.session['type_analyses_%s' % session_id] = container_type
+            request.session['type_analyses_echantillon_%s' % session_id] = dico1
+            request.session['type_analyses_echantillon_save_%s' % session_id] = dico1
+            return redirect(choix_analyse,session_id=session_id)
 
     return render(request, 'myapp/import_data.html')
 
 
-def choix_analyse(request):
-
-    if 'type_analyses' in request.session:
-        les_types = request.session['type_analyses']
+def choix_analyse(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    if 'type_analyses_%s' % session_id in request.session:
+        les_types = request.session['type_analyses_%s' % session_id]
         if request.method == 'POST':
             choix = request.POST['choix']
-            request.session['choix'] = choix
+            request.session['choix_%s' % session_id] = choix
             if choix in ["dbo5","chlorophylle","SIL"]:
-                return redirect(choix_specifique2)
+                return redirect(choix_specifique2,session_id=session_id)
 
             type_analyse = Type_analyse.objects.filter(nom=choix)
-            les_parametres = []
             parametres_externe = []
             param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('nom', flat=True))
             index_param_interne_analyse = list(type_analyse[0].parametre_interne.all().values_list('rang', flat=True))
@@ -177,25 +172,23 @@ def choix_analyse(request):
                         param_interne_analyse[j]=tmp2
 
             param_externe_analyse = type_analyse[0].parametre_externe.all().values_list('nom', flat=True)
-
-            for elmt in param_interne_analyse:
-                les_parametres.append(elmt)
             for elmt in param_externe_analyse:
                 parametres_externe.append(elmt)
-            request.session['les_parametres'] = les_parametres
-            request.session['parametres_externe'] = parametres_externe
+            request.session['parametres_externe_%s' % session_id] = parametres_externe
 
-            return redirect(choix_specifique1)
+            return redirect(choix_specifique1,session_id=session_id)
     else:
         les_types=""
 
     return render(request,'myapp/choix_analyse.html',{'les_types':les_types})
 
 
-def choix_specifique1(request):
-    if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
-        choix = request.session['choix']
-        echantillon = request.session['type_analyses_echantillon']
+def choix_specifique1(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    if 'choix_%s' % session_id in request.session and 'type_analyses_echantillon_%s' %session_id in request.session:
+        choix = request.session['choix_%s' % session_id]
+        echantillon = request.session['type_analyses_echantillon_%s' % session_id]
         echantillon_specifique = []
         echantillon_selected_and_analyse=[]
 
@@ -208,15 +201,17 @@ def choix_specifique1(request):
                 couple = [elmt, choix]
                 echantillon_selected_and_analyse.append(couple)
 
-            request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
-            return redirect(externe_data_feuille_calcul)
+            request.session['type_analyses_echantillon_%s' %session_id] = echantillon_selected_and_analyse
+            return redirect(externe_data_feuille_calcul,session_id=session_id)
         return render(request,'myapp/choix_specifique1.html',{'echantillon': echantillon_specifique})
 
 
-def choix_specifique2(request):
-    if 'choix' in request.session and 'type_analyses_echantillon' in request.session:
-        choix = request.session['choix']
-        echantillon = request.session['type_analyses_echantillon']
+def choix_specifique2(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    if 'choix_%s' % session_id in request.session and 'type_analyses_echantillon_%s' % session_id in request.session:
+        choix = request.session['choix_%s' % session_id]
+        echantillon = request.session['type_analyses_echantillon_%s' % session_id]
         echantillon_specifique=[]
         choix_multiple=[]
         echantillon_selected_and_analyse=[]
@@ -245,19 +240,21 @@ def choix_specifique2(request):
             for elmt in param_externe_analyse:
                 parametres_externe.append(elmt)
 
-            request.session['parametres_externe'] = parametres_externe
-            request.session['type_analyses_echantillon'] = echantillon_selected_and_analyse
-            request.session['choix']=choix_analyse
-            return redirect(externe_data_feuille_calcul)
+            request.session['parametres_externe_%s' % session_id] = parametres_externe
+            request.session['type_analyses_echantillon_%s' % session_id] = echantillon_selected_and_analyse
+            request.session['choix_%s' % session_id]=choix_analyse
+            return redirect(externe_data_feuille_calcul,session_id=session_id)
 
         return render(request,'myapp/choix_specifique2.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
 
 
-def externe_data_feuille_calcul(request):
+def externe_data_feuille_calcul(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
     profil = Profil.objects.filter(user=request.user)
-    if 'parametres_externe' in request.session and 'choix' in request.session :
-        param_externe_analyse= list(request.session['parametres_externe'])
-        choix=request.session['choix']
+    if 'parametres_externe_%s' % session_id in request.session and 'choix_%s' % session_id in request.session :
+        param_externe_analyse= list(request.session['parametres_externe_%s' % session_id])
+        choix=request.session['choix_%s' % session_id]
         #Placement des paramètres qui génère des résultat à la première place
         if choix=="dco":
             for i in range(len(param_externe_analyse)):
@@ -286,17 +283,19 @@ def externe_data_feuille_calcul(request):
                 feuille_calcul.profil= profil[0]
                 feuille_calcul.type_analyse =type_analyse[0]
                 feuille_calcul.save()
-                request.session['feuille_calcul_id'] = feuille_calcul.id
+                request.session['feuille_calcul_id_%s' % session_id] = feuille_calcul.id
                 if choix in ['sabm','SIL-BC','SIL 650','SIL 815']:
-                    return redirect(fix_etalonnage)
+                    return redirect(fix_etalonnage,session_id=session_id)
                 else:
-                    return redirect(feuille_calcul_data)
+                    return redirect(feuille_calcul_data,session_id=session_id)
         else:
             form=feuille_calculForm()
         return render(request, 'myapp/externe_data.html',{'form': form,"date_etalonnage":last_date_etalonnage})
 
 
-def feuille_calcul_data(request):
+def feuille_calcul_data(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
 
     num_echantillon=[]
     num_echantillon2=[]
@@ -304,18 +303,18 @@ def feuille_calcul_data(request):
     array_concentration=[]
     array_absorbance=[]
     parametre_etalonnage=""
-    concentration_and_absorbance = {}
     static_name_fig=""
+    concentration_and_absorbance={}
     error = False
-    if 'type_analyses_echantillon' in request.session and 'choix' in request.session and 'feuille_calcul_id' in request.session:
+    if 'type_analyses_echantillon_%s' % session_id in request.session and 'choix_%s' % session_id in request.session and 'feuille_calcul_id_%s' % session_id in request.session:
         change=""
-        if "change" in request.session:
-            change=request.session["change"]
+        if "change_%s" %session_id in request.session:
+            change=request.session["change_%s" %session_id]
 
 
-        type_analyses_echantillon = request.session['type_analyses_echantillon']
-        choix= request.session['choix']
-        feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id'])
+        type_analyses_echantillon = request.session['type_analyses_echantillon_%s' % session_id]
+        choix= request.session['choix_%s' %session_id]
+        feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id_%s' %session_id])
         param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
         index_param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
         param_interne_analyse= Trie(param_interne_analyse,index_param_interne_analyse)
@@ -366,10 +365,12 @@ def feuille_calcul_data(request):
                 num_echantillon2.append(num_echantillon[i])
 
         elif choix == "sabm":
-            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],type_analyse=feuille_calcul[0].type_analyse)[::-1]
+            set_etalonnage= Etalonnage.objects.filter(profil=profil[0],
+                                                      type_analyse=feuille_calcul[0].type_analyse,
+                                                      date_etalonnage=feuille_calcul[0].date_etalonnage)[::-1]
             for etalonnage in set_etalonnage:
-                array_concentration.append(float(etalonnage.c_lauryl.replace(',','.')))
-                array_absorbance.append(float(etalonnage.absorbance.replace(',','.')))
+                array_concentration.append(float(etalonnage.c_lauryl))
+                array_absorbance.append(float(etalonnage.absorbance))
 
             for i in range(len(num_echantillon)):
                 if i == 0:
@@ -384,19 +385,20 @@ def feuille_calcul_data(request):
 
         elif choix == "SIL-BC" or choix == "SIL 650" or choix == "SIL 815":
             set_etalonnage = Etalonnage.objects.filter(profil=profil[0],
-                                                       type_analyse=feuille_calcul[0].type_analyse)[::-1]
+                                                       type_analyse=feuille_calcul[0].type_analyse,
+                                                       date_etalonnage=feuille_calcul[0].date_etalonnage)[::-1]
             if choix =="SIL-BC":
                 for etalonnage in set_etalonnage:
-                    array_concentration.append(float((etalonnage.c_micromol_l).replace(',','.')))
-                    array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+                    array_concentration.append(float((etalonnage.c_micromol_l)))
+                    array_absorbance.append(float((etalonnage.absorbance)))
             elif choix == "SIL 815":
                 for etalonnage in set_etalonnage:
-                    array_concentration.append(float((etalonnage.c_micro_gl).replace(',','.')))
-                    array_absorbance.append(float((etalonnage.absorbance).replace(',','.')))
+                    array_concentration.append(float((etalonnage.c_micro_gl)))
+                    array_absorbance.append(float((etalonnage.absorbance)))
             else:
                 for etalonnage in set_etalonnage:
-                    array_concentration.append(float((etalonnage.c_mg).replace(',', '.')))
-                    array_absorbance.append(float((etalonnage.absorbance).replace(',', '.')))
+                    array_concentration.append(float((etalonnage.c_mg)))
+                    array_absorbance.append(float((etalonnage.absorbance)))
                     
             for i in range(len(num_echantillon)):
                 if i % 10 == 0:
@@ -421,44 +423,17 @@ def feuille_calcul_data(request):
                 localisation[cpt2]=cpt1
                 cpt1+=1
             cpt2+=1
-        request.session['localisation'] = localisation
+        request.session['localisation_%s' % session_id] = localisation
         # création du graphique d'absorbance
         if len(array_concentration) !=0 and len(array_absorbance)!=0:
-            for i in range(len(array_concentration)):
-                concentration_and_absorbance[array_concentration[i]] = array_absorbance[i]
             parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
             if parametre_etalonnage[0] == "Absorbance":
                 k = parametre_etalonnage[0]
                 parametre_etalonnage[0] = parametre_etalonnage[1]
                 parametre_etalonnage[1] = k
-            try:
-                os.makedirs(path)
-            except OSError as e:
-                if e.errno != errno.EEXIST:
-                    raise
             nom_fig = path+"\\"+feuille_calcul[0].type_analyse.nom+".png"
             static_name_fig=static_name_fig+"/"+ feuille_calcul[0].type_analyse.nom+".png"
-            # regression linéaire
-            x = np.array(array_concentration)
-            A = np.vstack([x, np.ones(len(x))]).T
-            y = np.array(array_absorbance)
-            m, c = np.linalg.lstsq(A, y, rcond=None)[0]
-            # coeeficient de corrélation
-            cor = np.corrcoef(x, y)[-1, 0]
-            plt.plot(x, y, 'kD', label='Observations', markersize=7)
-            plt.plot(x, m * x + c, 'b', label='regression line')
-            plt.xlabel(parametre_etalonnage[0])
-            plt.ylabel(parametre_etalonnage[1])
-            info = "Y= " + str(round(m, 4)) + "x"
-            if c > 0:
-                info = info + "+" + str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
-            else:
-                info = info +" "+ str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
-            plt.suptitle(info, fontsize=12)
-            plt.legend()
-            plt.savefig(nom_fig)
-            #on efface le graphe pour ne pas réécrire dessus
-            plt.clf()
+            concentration_and_absorbance=create_figure(array_concentration, array_absorbance, parametre_etalonnage, path, nom_fig)
 
         analyseFormset = modelformset_factory(Analyse,
                                               form=AnalyseForm,
@@ -482,7 +457,7 @@ def feuille_calcul_data(request):
                             analyse.echantillon= echantillon[0]
                             analyse.feuille_calcul= feuille_calcul[0]
                             analyse.save()
-                    return redirect(export_analyse,id_feuille_calcul=request.session['feuille_calcul_id'])
+                    return redirect(export_analyse,id_feuille_calcul=request.session['feuille_calcul_id_%s' % session_id],session_id=session_id)
 
             else:
                 error = True
@@ -495,7 +470,8 @@ def feuille_calcul_data(request):
                                'parametre_etalonnage': parametre_etalonnage,
                                'concentration_and_absorbance': concentration_and_absorbance,
                                'error': error,
-                               'change':change
+                               'change':change,
+                               'session_id':session_id
                                })
 
         return render(request,'myapp/feuille_calcul.html',{'formset': formset,'nb_echantillon':nb_echantillon,
@@ -506,57 +482,60 @@ def feuille_calcul_data(request):
                                                            'parametre_etalonnage':parametre_etalonnage,
                                                            'concentration_and_absorbance':concentration_and_absorbance,
                                                            'error':error,
-                                                           'change':change
+                                                           'change':change,
+                                                           'session_id':session_id
                                                            })
 
 
-def ajax_echantillon_add(request):
+def ajax_echantillon_add(request,session_id):
     if request.method == 'POST':
         numero = request.POST['ajax']
         pos= int(request.POST['pos'])
         Echantillon.objects.get_or_create(numero= numero)
-        if 'type_analyses_echantillon' in request.session and 'choix' in request.session and 'localisation' in request.session:
-            choix=request.session['choix']
-            echantillon_and_type =request.session['type_analyses_echantillon']
-            localisation=request.session['localisation']
-            request.session["change"] = "Faux"
+        if 'type_analyses_echantillon_%s' % session_id in request.session and 'choix_%s' % session_id in request.session and 'localisation_%s' %session_id in request.session:
+            choix=request.session['choix_%s' % session_id]
+            echantillon_and_type =request.session['type_analyses_echantillon_%s' % session_id]
+            localisation=request.session['localisation_%s' % session_id]
+            request.session["change_%s" % session_id] = "Faux"
             if localisation[pos] != -1:
                 if pos !=300:
                     echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
                 else:
                     echantillon_and_type.append([numero, choix])
 
-                request.session["change"]="Vrai"
-            request.session['type_analyses_echantillon']= echantillon_and_type
+                request.session["change_%s" % session_id]="Vrai"
+            request.session['type_analyses_echantillon_%s' % session_id]= echantillon_and_type
             return HttpResponse('')
 
 
-def ajax_echantillon_del(request):
+def ajax_echantillon_del(request,session_id):
     pos = int(request.GET.get('pos', None))
-    if 'type_analyses_echantillon' in request.session and 'localisation' in request.session:
-        echantillon_and_type = request.session['type_analyses_echantillon']
-        localisation = request.session['localisation']
-        request.session["change"] = "Faux"
+    if 'type_analyses_echantillon_%s' % session_id in request.session and 'localisation_%s' % session_id in request.session:
+        echantillon_and_type = request.session['type_analyses_echantillon_%s' % session_id]
+        localisation = request.session['localisation_%s' % session_id]
+        request.session["change_%s" % session_id] = "Faux"
         if pos != -10:
             if localisation[pos] != -1:
                 del echantillon_and_type[localisation[pos]]
-                request.session["change"] = "Vrai"
-                request.session['type_analyses_echantillon']= echantillon_and_type
+                request.session["change_%s" % session_id] = "Vrai"
+                request.session['type_analyses_echantillon_%s' % session_id]= echantillon_and_type
         return HttpResponse('')
 
 
-def export_analyse(request,id_feuille_calcul):
-
-    if 'type_analyses_echantillon' in request.session and 'type_analyses_echantillon_save' in request.session:
-        request.session['type_analyses_echantillon'] = request.session['type_analyses_echantillon_save']
+def export_analyse(request,id_feuille_calcul,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
     if request.method == 'POST':
 
         if 'XLS' in request.POST:
-            return export_xls_f(id_feuille_calcul)
+            return Export_xls_f(id_feuille_calcul)
         if 'PDF' in request.POST:
-            return export_pdf_f(id_feuille_calcul)
+            return Export_pdf_f(id_feuille_calcul)
         if 'choix' in request.POST:
-            return redirect(choix_analyse)
+            if 'type_analyses_echantillon_%s' % session_id in request.session and 'type_analyses_echantillon_save_%s' % session_id in request.session:
+                request.session['type_analyses_echantillon_%s' % session_id] = request.session[
+                    'type_analyses_echantillon_save_%s' % session_id]
+            return redirect(choix_analyse,session_id=session_id)
         if 'import' in request.POST:
             return redirect(import_data)
 
@@ -564,19 +543,27 @@ def export_analyse(request,id_feuille_calcul):
 
 
 def export_xls(request,id_feuille_calcul):
-    return export_xls_f(id_feuille_calcul)
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    return Export_xls_f(id_feuille_calcul)
 
 
 def export_pdf(request,id_feuille_calcul):
-    return export_pdf_f(id_feuille_calcul)
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    return Export_pdf_f(id_feuille_calcul)
 
 
-def fix_etalonnage(request):
-    if 'choix' in request.session and 'feuille_calcul_id' in request.session :
-        choix= request.session['choix']
+def fix_etalonnage(request,session_id):
+    if not request.user.is_authenticated:
+        return redirect(connexion)
+    if 'choix_%s' % session_id in request.session and 'feuille_calcul_id_%s' % session_id in request.session :
+        choix= request.session['choix_%s' % session_id]
         nb_etalonnage=6
         profil=Profil.objects.filter(user=request.user)
         type_analyse = Type_analyse.objects.filter(nom=choix)
+        feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id_%s' % session_id])
+        date_etalonnage=feuille_calcul[0].date_etalonnage
         param_etalonnage=list(type_analyse[0].parametre_etalonnage.all().values_list('nom',flat=True))
         if param_etalonnage[0]=="absorbance":
             k=param_etalonnage[0]
@@ -601,38 +588,77 @@ def fix_etalonnage(request):
         #la requête dans le queryset permet de créer un ensemble d'étalonnage par profil et analyse
         if choix == "sabm":
             etalonnageFormset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
-                                              queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0]))
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL 650":
             etalonnageFormset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
-                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
-                                                                                     type_analyse=type_analyse[0]))
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL 815":
             etalonnageFormset = etalonnageFormset(initial=[{'c_micro_gl': x} for x in ['0', '20', '50', '100', '500', '1000']],
-                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
-                                                                                     type_analyse=type_analyse[0]))
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL-BC":
             etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
-                                                  queryset=Etalonnage.objects.filter(profil=profil[0],
-                                                                                     type_analyse=type_analyse[0]))
+                                                  queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
 
 
         if request.method == 'POST':
             if formset.is_valid():
-                feuille_calcul = Feuille_calcul.objects.filter(id=request.session['feuille_calcul_id']).update(etalonnage=request.POST['etalonnage'])
+                feuille_calcul = feuille_calcul.update(etalonnage=request.POST['etalonnage'])
                 for form in formset:
                     etalonnage = form.save(commit=False)
+                    if etalonnage.c_lauryl != "":
+                        etalonnage.c_lauryl = etalonnage.c_lauryl.replace(',','.')
+                    elif etalonnage.c_mg != "":
+                        etalonnage.c_mg = etalonnage.c_mg.replace(',','.')
+                    elif etalonnage.c_micro_gl != "":
+                        etalonnage.c_micro_gl = etalonnage.c_micro_gl.replace(',','.')
+                    elif etalonnage.c_micromol_l != "":
+                        etalonnage.c_micromol_l = etalonnage.c_micromol_l.replace(',','.')
+
                     etalonnage.type_analyse = type_analyse[0]
                     etalonnage.profil = profil[0]
+                    etalonnage.date_etalonnage= date_etalonnage
                     etalonnage.save()
-                return redirect(feuille_calcul_data)
+                return redirect(feuille_calcul_data,session_id=session_id)
 
         return render(request,'myapp/fix_etalonnage.html',{'formset':etalonnageFormset,'param_etalonnage':param_etalonnage_js})
 
 
+def gestion_admin(request):
+    profil=list(Profil.objects.all())
+    return render(request, 'myapp/gestion_admin.html', {'profil': profil})
 
+def feuille_calcul_admin(request,id_feuille_calcul):
+    array_concentration=[]
+    array_absorbance=[]
+    feuille_calcul=Feuille_calcul.objects.filter(id=id_feuille_calcul)
+    analyse=Analyse.objects.filter(feuille_calcul=feuille_calcul[0])
+    nb_echantillon= len(analyse)
+    parametre_interne=list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
+    index_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+    parametre_interne = Trie(parametre_interne, index_param_interne)
+    analyseFormset= modelformset_factory(Analyse,form=AnalyseForm,fields=parametre_interne,max_num=nb_echantillon,min_num=nb_echantillon)
+    formset= analyseFormset(queryset=Analyse.objects.filter(feuille_calcul=feuille_calcul[0]))
+    choix= feuille_calcul[0].type_analyse.nom
+    if choix in ["SIL 815","sabm","SIL 650","SIL-BC"]:
+        parametre_etalonnage_nom = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True))
+        if parametre_etalonnage_nom[0] == "absorbance":
+            k = parametre_etalonnage_nom[0]
+            parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
+            parametre_etalonnage_nom[1] = k
+        les_etalonnages = Etalonnage.objects.filter(profil=feuille_calcul[0].profil,
+                                                    type_analyse=feuille_calcul[0].type_analyse,
+                                                    date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(
+            *parametre_etalonnage_nom)[::-1]
+        for etalonnage in les_etalonnages:
+            array_concentration.append(float(etalonnage[0]))
+            array_absorbance.append(float(etalonnage[1]))
 
-def test(request):
-    return render (request,'myapp/test.html')
+    if request.method == 'POST':
+        formset = analyseFormset(request.POST, request.FILES)
+        if formset.is_valid():
+            for form in formset:
+                form.save()
+            return redirect(gestion_admin)
 
-
+    return render(request, 'myapp/feuille_calcul_admin.html',locals())
 

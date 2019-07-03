@@ -139,9 +139,9 @@ var lr = linearRegression(concentrations,absorbances);
 //fonction javascriptt situé dans app.js permtant de trouver le coefficient de correlation a partir des concentations et absorbances
 var cor = pearsonCorrelation(concentrations,absorbances);
 if(cor<0.99)
-    {document.getElementById("verifEtalonnage").value="Etalonnage incorrecte";}
+    {document.getElementById("verifEtalonnage").value="Etalonnage incorrect";}
 else
-    {document.getElementById("verifEtalonnage").value="Etalonnage correcte";}
+    {document.getElementById("verifEtalonnage").value="Etalonnage correct";}
 
 x_min=concentrations[0];
 x_max=concentrations.slice(-1)[0];

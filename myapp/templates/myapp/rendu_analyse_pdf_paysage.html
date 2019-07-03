@@ -100,16 +100,24 @@ text-align:center;
 {% for elmt1 in data_externe %}
    <tr>
        {%for elmt2 in elmt1%}
-       <td><strong>{{elmt2.0}} :</strong></td>
-       <td>{{elmt2.1}}</td>
+            {% if elmt2 != "" %}
+                <td style="color:blue"><strong>{{elmt2.0}} :</strong></td>
+                {% if elmt2.1 == "Blanc conforme" or elmt2.1 == "Etalonnage correct" %}
+                    <td style="color:green">{{elmt2.1}}</td>
+                {% elif elmt2.1 == "Blanc non conforme" or elmt2.1 == "Etalonnage incorrect" %}
+                    <td style="color:red">{{elmt2.1}}</td>
+                {% else %}
+                    <td>{{elmt2.1}}</td>
+                {% endif %}
+            {% else %}
+                <td> </td>
+                <td> </td>
+            {% endif %}
        {% endfor %}
    </tr>
 {% endfor %}
 </tbody>
 </table>
-
- <br/>
- <br/>
 {% if path != "" %}
 <table>
 <tr>
@@ -139,7 +147,23 @@ text-align:center;
 </tr>
 </table>
 {%endif%}
- <br/>
+<table>
+<tbody>
+{% for elmt1 in extra_data_externe %}
+   <tr>
+       {%for elmt2 in elmt1%}
+            {% if elmt2 != "" %}
+                <td style="color:blue"><strong>{{elmt2.0}} :</strong></td>
+                <td>{{elmt2.1}}</td>
+            {% else %}
+                <td> </td>
+                <td> </td>
+            {% endif %}
+       {% endfor %}
+   </tr>
+{% endfor %}
+</tbody>
+</table>
  <br/>
    <table class="analyse">
      <thead>
@@ -156,7 +180,13 @@ text-align:center;
              {% if forloop.first %}
                 <td style="font-size: 7px;">{{param}}</td>
              {% else %}
-                <td>{{param}} </td>
+                {%if param == 'non valable' or param == 'FAUX' or param == "hors gamme" %}
+                    <td style="color:red">{{param}} </td>
+                {%elif param == 'valable' or param == 'VRAI' or param == "hors gamme" %}
+                    <td style="color:green">{{param}} </td>
+                {% else %}
+                    <td>{{param}} </td>
+                {% endif %}
              {% endif %}
            {% endfor %}
          </tr>
@@ -165,7 +195,7 @@ text-align:center;
    </table>
 <br/>
 <br/>
-<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-lABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
+<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-LABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
 
  </body>
 </html>

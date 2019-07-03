@@ -24,7 +24,7 @@ border: 1px solid black;
 .analyse td
 {
 padding: 5px;
-text-align: left;
+text-align: center;
 }
 .table_absorbance table
 .table_absorbance th,
@@ -66,6 +66,7 @@ text-align:center;
     text-align:right;
 }
 
+
 </style>
 <head>
     <title>Liste d'analyses </title>
@@ -73,7 +74,7 @@ text-align:center;
 </head>
 <body>
 <div id="header_content">
-    <h1>{{codification.intitule}}</h1>
+    <h1 style="color:brown">{{codification.intitule}}</h1>
 </div>
 <div id="footer_content" style="text-align:right">
 <pdf:pagenumber>/<pdf:pagecount>
@@ -96,16 +97,24 @@ text-align:center;
 {% for elmt1 in data_externe %}
    <tr>
        {%for elmt2 in elmt1%}
-       <td><strong>{{elmt2.0}} :</strong></td>
-       <td>{{elmt2.1}}</td>
+            {% if elmt2 != "" %}
+               <td style="color:blue"><strong>{{elmt2.0}} :</strong></td>
+                {% if elmt2.1 == "Blanc conforme" or elmt2.1 == "Etalonnage correct" %}
+                    <td style="color:green">{{elmt2.1}}</td>
+                {% elif elmt2.1 == "Blanc non conforme" or elmt2.1 == "Etalonnage incorrect" %}
+                    <td style="color:red">{{elmt2.1}}</td>
+                {% else %}
+                    <td>{{elmt2.1}}</td>
+                {% endif %}
+            {% else %}
+            <td> </td>
+            <td> </td>
+            {% endif %}
        {% endfor %}
    </tr>
 {% endfor %}
 </tbody>
 </table>
-
- <br/>
- <br/>
 {% if path != "" %}
 <table>
 <tr>
@@ -135,8 +144,25 @@ text-align:center;
 </tr>
 </table>
 {%endif%}
- <br/>
- <br/>
+<br/>
+<table>
+<tbody>
+{% for elmt1 in extra_data_externe %}
+   <tr>
+       {%for elmt2 in elmt1%}
+            {% if elmt2 != "" %}
+            <td style="color:blue"><strong>{{elmt2.0}} :</strong></td>
+            <td>{{elmt2.1}}</td>
+            {% else %}
+            <td> </td>
+            <td> </td>
+            {% endif %}
+       {% endfor %}
+   </tr>
+{% endfor %}
+</tbody>
+</table>
+<br/>
    <table class="analyse">
      <thead>
        <tr>
@@ -148,15 +174,25 @@ text-align:center;
      <tbody>
        {% for analyse in valeur_interne_feuille %}
          <tr>
-           {% for param in analyse %}
-           <td>{{param}} </td>
-           {% endfor %}
+            {% for param in analyse %}
+                {% if forloop.first %}
+                    <td style="font-size: 7px;">{{param}}</td>
+                {% else %}
+                    {%if param == 'non valable' or param == 'FAUX' %}
+                        <td style="color:red">{{param}} </td>
+                    {%elif param == 'valable' or param == 'VRAI' %}
+                        <td style="color:green">{{param}} </td>
+                    {% else %}
+                        <td>{{param}} </td>
+                    {% endif %}
+                {% endif %}
+            {% endfor %}
          </tr>
        {% endfor %}
      </tbody>
    </table>
 <br/>
 <br/>
-<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-lABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
+<div id="signature">INSTITUT PASTEUR DE LA GUADELOUPE-LABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT</div>
 </body>
 </html>

@@ -40,7 +40,7 @@
                             Bonjour {{user.first_name}}
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                <a class="dropdown-item" href="{% url 'myapp_index_feuille_calcul'%}">Mes feuilles de calculs</a>
+                                <a class="dropdown-item" href="{% url 'myapp_index_feuille_calcul' username=user.username%}">Mes feuilles de calculs</a>
                                 <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
                             </div>
                             </li>
@@ -87,7 +87,7 @@
                 max-height: auto;
                 min-width:auto;
                 max-width: auto;
-                background: url('../../static/footer/footer2.jpg') 50% 0 repeat-y fixed;
+                background: url('/../../static/footer/footer2.jpg') 50% 0 repeat-y fixed;
                 -webkit-background-size: cover;
                 background-size: cover;
                 background-position: center;

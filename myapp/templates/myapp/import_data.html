@@ -12,6 +12,7 @@
             {% csrf_token %}
             <label class="text-primary">Upload Your File </label>
             <input name="myfile" id="myfile" type="file" class="form-control" multiple="">
+            <input type="hidden" name="session" id="session">
             <input type="submit" name="valider" class="btn btn-primary "/>
         </form>
     </div>
@@ -19,3 +20,20 @@
 
 {% endblock %}
 
+{%block javascripts %}
+{{ block.super }}
+<script>
+function makeid() {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for (var i = 0; i < 10; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+}
+
+ window.onload = function() {
+ document.getElementById("session").value = makeid();
+ }
+</script>
+{%endblock %}

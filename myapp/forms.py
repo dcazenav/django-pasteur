@@ -75,7 +75,7 @@ class AnalyseForm(forms.ModelForm):
             'var1_dco': forms.TextInput(attrs={'size': '12'}),
             'var2_dco': forms.TextInput(attrs={'size': '12'}),
             'var3_dco': forms.TextInput(attrs={'size': '12'}),
-            'var4_dco': forms.TextInput(attrs={'size': '12'}),
+            'var4_dco': forms.TextInput(attrs={'readonly': True,'size': '12'}),
             'var5_dco': forms.TextInput(attrs={'size': '12'}),
             'var1_ntk': forms.TextInput(attrs={'size': '12'}),
             'var2_ntk': forms.TextInput(attrs={'size': '12'}),

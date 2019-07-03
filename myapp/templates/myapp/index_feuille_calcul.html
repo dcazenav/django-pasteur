@@ -1,11 +1,6 @@
 {% extends 'myapp/base.html' %}
 {% block content %}
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-<table class="table">
+<table id="table" class="compact  row-border stripe hover">
 <thead>
 <tr>
     <th>N° Feuille de calcul</th>
@@ -18,7 +13,11 @@
 <tbody>
 {% for clc in feuille_calcul %}
 <tr>
-    <td> {{clc.id}}</td>
+    {% if user.is_superuser %}
+    <td> <a href="{% url 'myapp_feuille_admin' id_feuille_calcul=clc.id %}">{{clc.id}}</a></td>
+    {% else %}
+    <td> {{clc.id}} </td>
+    {% endif %}
     <td>  {{clc.type_analyse.nom}}  </td>
     <td> {{clc.date_creation}}</td>
     <td><a href="{% url 'myapp_export_xls' id_feuille_calcul=clc.id %}"><img src="http://icons.iconarchive.com/icons/graphicloads/filetype/32/excel-xls-icon.png" border="0"></a> </td>
@@ -29,5 +28,18 @@
 </tbody>
 </table>
 
-</body>
+{% endblock %}
+
+{%block javascripts %}
+{{ block.super }}
+<script>
+$(document).ready(function() {
+$('#table').DataTable
+    ({
+        "pagingType": "simple_numbers",
+        "info":     false
+
+    });
+});
+</script>
 {% endblock %}

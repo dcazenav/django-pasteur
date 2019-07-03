@@ -5,6 +5,10 @@ from PIL import Image
 from django.http import HttpResponse
 import os.path
 from django.template.loader import render_to_string
+import numpy as np
+import matplotlib.pyplot as plt
+import os.path,errno
+
 
 
 def Trie(param,index):
@@ -20,39 +24,67 @@ def Trie(param,index):
     return param
 
 
-def export_xls_f(id_feuille_calcul):
+def create_figure(array_concentration,array_absorbance,parametre_etalonnage,path,nom_fig):
+    concentration_and_absorbance={}
+    for i in range(len(array_concentration)):
+        concentration_and_absorbance[array_concentration[i]] = array_absorbance[i]
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+    x = np.array(array_concentration)
+    A = np.vstack([x, np.ones(len(x))]).T
+    y = np.array(array_absorbance)
+    m, c = np.linalg.lstsq(A, y, rcond=None)[0]
+    # coeficient de corrélation
+    cor = np.corrcoef(x, y)[-1, 0]
+    plt.plot(x, y, 'kD', label='Observations', markersize=7)
+    plt.plot(x, m * x + c, 'b', label='Droite de regression')
+    plt.xlabel(parametre_etalonnage[0])
+    plt.ylabel(parametre_etalonnage[1])
+    info = "Y= " + str(round(m, 4)) + "x"
+    if c > 0:
+        info = info + "+" + str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
+    else:
+        info = info +" "+ str(round(c, 4)) + "\n" + "R²= " + str(round(pow(cor, 2), 4))
+    plt.suptitle(info, fontsize=12)
+    plt.legend()
+    plt.savefig(nom_fig)
+    #on efface le graphe pour ne pas réécrire dessus
+    plt.clf()
+    return concentration_and_absorbance
+
+def Export_xls_f(id_feuille_calcul):
     feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
     profil=feuille_calcul[0].profil
-    param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
-    liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
+    param_externe_analyse = list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True))
+    liste_param_externe = list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True))
+    index_param_externe1 =  list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('rang', flat=True))
+    index_param_externe2 =  list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('rang', flat=True))
+    param_externe_analyse= Trie(param_externe_analyse,index_param_externe1)
+    liste_param_externe= Trie(liste_param_externe,index_param_externe2)
     feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
         *param_externe_analyse)
     feuille_calcul_trie = feuille_calcul_trie[0]
 
-    filename=profil.user.first_name+"_"+str(feuille_calcul[0].id)+"_"+feuille_calcul[0].type_analyse.nom
+    filename=profil.user.first_name+"_"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date())+"_"+feuille_calcul[0].type_analyse.nom
     dico = {}
     entete_data_externe= []
     parametre_etalonnage=""
+    nom_fig=""
+    array_concentration=[]
+    array_absorbance=[]
     concentration_and_absorbance = {}
     codification=feuille_calcul[0].type_analyse.codification
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
     # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
     param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom',flat=True))
-    index_param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
-    for i in range(len(index_param_interne_analyse)):
-        for j in range(len(index_param_interne_analyse) - 1):
-            if index_param_interne_analyse[i] < index_param_interne_analyse[j]:
-                tmp1 = index_param_interne_analyse[i]
-                tmp2 = param_interne_analyse[i]
-                tmp3 = liste_param_interne[i]
-                index_param_interne_analyse[i] = index_param_interne_analyse[j]
-                param_interne_analyse[i] = param_interne_analyse[j]
-                liste_param_interne[i] =liste_param_interne[j]
-                index_param_interne_analyse[j] = tmp1
-                param_interne_analyse[j] = tmp2
-                liste_param_interne[j] =tmp3
-
+    index_param_interne_analyse1 = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+    index_param_interne_analyse2 = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+    param_interne_analyse= Trie(param_interne_analyse,index_param_interne_analyse1)
+    liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
     liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)[::-1]
     for cpt in range(len(param_externe_analyse)):
@@ -68,7 +100,8 @@ def export_xls_f(id_feuille_calcul):
 
     path = ""
     if feuille_calcul[0].type_analyse.nom in ["sabm","SIL-BC","SIL 650","SIL 815"]:
-        path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username+"\\"+feuille_calcul[0].type_analyse.nom+".png"
+        path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\"+profil.user.username
+        nom_fig = path + "\\" + feuille_calcul[0].type_analyse.nom + ".png"
         parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
         if parametre_etalonnage[0] == "Absorbance":
             k = parametre_etalonnage[0]
@@ -79,9 +112,13 @@ def export_xls_f(id_feuille_calcul):
             k = parametre_etalonnage_nom[0]
             parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
             parametre_etalonnage_nom[1] = k
-        les_etalonnages=Etalonnage.objects.filter(profil=profil,type_analyse=feuille_calcul[0].type_analyse).values_list(*parametre_etalonnage_nom)[::-1]
+        les_etalonnages=Etalonnage.objects.filter(profil=profil,
+                                                  type_analyse=feuille_calcul[0].type_analyse,
+                                                  date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(*parametre_etalonnage_nom)[::-1]
         for etalonnage in les_etalonnages:
-            concentration_and_absorbance[etalonnage[0]] = etalonnage[1]
+            array_concentration.append(float(etalonnage[0]))
+            array_absorbance.append(float(etalonnage[1]))
+        concentration_and_absorbance=create_figure(array_concentration,array_absorbance,parametre_etalonnage,path,nom_fig)
 
     response = HttpResponse(content_type='application/ms-excel')
     response['Content-Disposition'] = 'attachment; filename="'+filename +'.xls"'
@@ -135,8 +172,8 @@ def export_xls_f(id_feuille_calcul):
 
 
     if path != "" :
-        img = Image.open(path).convert("RGB")
-        path_bmp=path.replace("png","bmp")
+        img = Image.open(nom_fig).convert("RGB")
+        path_bmp=nom_fig.replace("png","bmp")
         #transforme l'image png en bmp
         img.save(path_bmp)
         ws.insert_bitmap(path_bmp, row_num-cpt-1, 5, scale_x=0.7, scale_y=0.7)
@@ -155,61 +192,63 @@ def export_xls_f(id_feuille_calcul):
 
     return response
 
-def export_pdf_f(id_feuille_calcul):
+def Export_pdf_f(id_feuille_calcul):
     feuille_calcul = Feuille_calcul.objects.filter(id=id_feuille_calcul)
     profil = feuille_calcul[0].profil
-    param_externe_analyse = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True)
-    liste_param_externe = feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True)
+    param_externe_analyse = list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('nom', flat=True))
+    liste_param_externe = list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('valeur', flat=True))
+    index_param_externe1 =  list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('rang', flat=True))
+    index_param_externe2 =  list(feuille_calcul[0].type_analyse.parametre_externe.all().values_list('rang', flat=True))
+    param_externe_analyse= Trie(param_externe_analyse,index_param_externe1)
+    liste_param_externe= Trie(liste_param_externe,index_param_externe2)
     feuille_calcul_trie = Feuille_calcul.objects.filter(id=id_feuille_calcul).values_list(
         *param_externe_analyse)
     feuille_calcul_trie = feuille_calcul_trie[0]
-
-    filename = profil.user.first_name + "_" +str(feuille_calcul[0].id) + "_" + feuille_calcul[
-        0].type_analyse.nom
-    entete_data_externe = []
+    array_concentration=[]
+    array_absorbance=[]
+    filename = profil.user.first_name+"_"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date())+"_"+feuille_calcul[0].type_analyse.nom
     parametre_etalonnage = ""
     concentration_and_absorbance = {}
+    nom_fig=""
     info_data_extern_pdf = []
+    extra_data_extern_pdf=[]
     codification =feuille_calcul[0].type_analyse.codification
     # On veut obtenir le vrais nom des paramètre tel que renseigné sur une feuille de calcul classique pour les entêtes dans le tableau
     liste_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('valeur', flat=True))
     # On récupère le nom des variable du type d'analyse les nom sont tel que var1_dco, etc car ce son ces noms la qu'on retrouve dans l'entité feuille de calcul
     param_interne_analyse = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
-    index_param_interne_analyse = list(
-        feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
-    for i in range(len(index_param_interne_analyse)):
-        for j in range(len(index_param_interne_analyse) - 1):
-            if index_param_interne_analyse[i] < index_param_interne_analyse[j]:
-                tmp1 = index_param_interne_analyse[i]
-                tmp2 = param_interne_analyse[i]
-                tmp3 = liste_param_interne[i]
-                index_param_interne_analyse[i] = index_param_interne_analyse[j]
-                param_interne_analyse[i] = param_interne_analyse[j]
-                liste_param_interne[i] = liste_param_interne[j]
-                index_param_interne_analyse[j] = tmp1
-                param_interne_analyse[j] = tmp2
-                liste_param_interne[j] = tmp3
-
+    index_param_interne_analyse1 = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+    index_param_interne_analyse2 = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+    param_interne_analyse=Trie(param_interne_analyse,index_param_interne_analyse1)
+    liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
     liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)[::-1]
     for cpt in range(len(param_externe_analyse)):
-        entete_data_externe.append(liste_param_externe[cpt])
-        info_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
+        if liste_param_externe[cpt] in ["Date d'analyse","Heure de mise sous essai"]:
+            extra_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
+        else:
+            info_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
+
     if feuille_calcul[0].type_analyse.nom in ["sabm","SIL 650","SIL 815","SIL-BC"]:
-        entete_data_externe.append("Etalonnage réalisé par")
         info_data_extern_pdf.append(["Etalonnage réalisé par", profil.user.first_name + " " + profil.user.last_name])
 
-    entete_data_externe.append("Analyse réalisé par")
     info_data_extern_pdf.append(["Analyse réalisé par", profil.user.first_name + " " + profil.user.last_name])
     nested = []
     # array d'array composé de couple de deux array
     for x in range(0, len(info_data_extern_pdf), 2):
-        nested.append(info_data_extern_pdf[x:x + 2])
-
+        if len(info_data_extern_pdf)>1:
+            nested.append(info_data_extern_pdf[x:x + 2])
+        else:
+            nested.append([info_data_extern_pdf[0],""])
+    nested2=[]
+    if len(extra_data_extern_pdf)>1:
+        nested2.append(extra_data_extern_pdf[0:2])
+    else:
+        nested2.append([extra_data_extern_pdf[0],""])
     path = ""
     if feuille_calcul[0].type_analyse.nom in ["sabm", "SIL-BC", "SIL 650","SIL 815"]:
-        path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\" + profil.user.username + "\\" + \
-               feuille_calcul[0].type_analyse.nom + ".png"
+        path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp\\" + profil.user.username
+        nom_fig = path + "\\" + feuille_calcul[0].type_analyse.nom + ".png"
         parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur',
                                                                                                      flat=True))
         if parametre_etalonnage[0] == "Absorbance":
@@ -223,21 +262,24 @@ def export_pdf_f(id_feuille_calcul):
             parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
             parametre_etalonnage_nom[1] = k
         les_etalonnages = Etalonnage.objects.filter(profil=profil,
-                                                    type_analyse=feuille_calcul[0].type_analyse).values_list(
+                                                    type_analyse=feuille_calcul[0].type_analyse,
+                                                    date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(
             *parametre_etalonnage_nom)[::-1]
         for etalonnage in les_etalonnages:
-            concentration_and_absorbance[etalonnage[0]] = etalonnage[1]
+            array_concentration.append(float(etalonnage[0]))
+            array_absorbance.append(float(etalonnage[1]))
+        concentration_and_absorbance = create_figure(array_concentration,array_absorbance,parametre_etalonnage,path,nom_fig)
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
     # find the template and render it.
-    if feuille_calcul[0].type_analyse.nom in ["chlorophylle lorenzen","chlorophylle scor unesco","dbo sans dilution","dbo avec dilution"]:
+    if feuille_calcul[0].type_analyse.nom in ["chlorophylle lorenzen","chlorophylle scor unesco","dbo sans dilution","dbo avec dilution","matiere seche et mvs"]:
         template="myapp/rendu_analyse_pdf_paysage.html"
     else:
         template = "myapp/rendu_analyse_pdf_portrait.html"
     html = render_to_string(template,
-                            {'data_externe': nested, 'param_interne_analyse': liste_param_interne,
-                             'valeur_interne_feuille': liste_analyses, 'path': path,
+                            {'data_externe': nested,"extra_data_externe":nested2 , 'param_interne_analyse': liste_param_interne,
+                             'valeur_interne_feuille': liste_analyses, 'path': nom_fig,
                              'parametre_etalonnage': parametre_etalonnage,
                              'concentration_and_absorbance': concentration_and_absorbance,
                              'nom_analyse': feuille_calcul[0].type_analyse.nom,

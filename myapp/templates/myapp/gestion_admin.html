@@ -1,0 +1,20 @@
+{% extends 'myapp/base.html' %}
+{% block content %}
+<table class="table">
+<thead>
+<tr>
+    <th>Nom</th>
+    <th>Prénom</th>
+</tr>
+</thead>
+<tbody>
+{% for p in profil %}
+<tr>
+    <td><a href="{% url 'myapp_index_feuille_calcul' username=p.user.username%}">{{p.user.last_name}}</a></td>
+    <td><a href="{% url 'myapp_index_feuille_calcul' username=p.user.username%}">{{p.user.first_name}}</a></td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
+

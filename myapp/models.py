@@ -17,7 +17,7 @@ class Profil(models.Model):
 class Parametre_externe_analyse(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
-
+    rang = models.IntegerField(null=True)
     def __str__(self):
         return self.nom
 
@@ -60,6 +60,7 @@ class Type_analyse(models.Model):
 class Etalonnage(models.Model):
     profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
     type_analyse = models.ForeignKey(Type_analyse, on_delete=models.CASCADE)
+    date_etalonnage = models.DateField(auto_now=False, verbose_name="Date de l'étalonnage",default=datetime.datetime(1980, 1, 1, 1, 1, 1))
     c_lauryl = models.CharField(max_length=100, verbose_name="concentration mg/L de lauryl sulfate de sodium")
     c_mg = models.CharField(max_length=100, verbose_name="concentration mg/L")
     c_micromol_l= models.CharField(max_length=100, verbose_name="concentration µmol/L")
