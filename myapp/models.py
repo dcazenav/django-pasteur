@@ -25,7 +25,7 @@ class Parametre_externe_analyse(models.Model):
 class Parametre_interne_analyse(models.Model):
     nom = models.CharField(max_length=60)
     valeur = models.CharField(max_length=100)
-    rang = models.IntegerField()
+    rang = models.IntegerField(null=True)
     def __str__(self):
         return self.nom
 
@@ -38,20 +38,19 @@ class Parametre_etalonnage(models.Model):
 
 
 class Codification(models.Model):
-    code= models.CharField(max_length=100)
-    date_rev= models.DateField(auto_now=False)
-    revision= models.CharField(max_length=100)
-    intitule= models.CharField(max_length=100)
+    code= models.CharField(max_length=100,verbose_name="codification",default="")
+    date_rev= models.DateField(auto_now=False,verbose_name="date_revision",default="")
+    revision= models.CharField(max_length=100,verbose_name="révision",default="")
+    intitule= models.CharField(max_length=100,verbose_name="Intitulé",default="")
     def __str__(self):
         return self.code
-
 
 class Type_analyse(models.Model):
     nom = models.CharField(max_length=100)
     parametre_interne=models.ManyToManyField(Parametre_interne_analyse,blank=True)
     parametre_externe = models.ManyToManyField(Parametre_externe_analyse,blank=True)
     parametre_etalonnage = models.ManyToManyField(Parametre_etalonnage,blank=True)
-    codification = models.ForeignKey(Codification, on_delete=models.CASCADE)
+    codification = models.ForeignKey(Codification, on_delete=models.CASCADE,null=True)
 
     def __str__(self):
         return self.nom
