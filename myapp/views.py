@@ -89,7 +89,8 @@ def import_data(request):
         myfile = request.FILES["myfile"] if 'myfile' in request.FILES else False
 
         if myfile!= False:
-            if myfile.name.endswith('.TXT'):
+            if myfile.name.endswith('.TXT') or myfile.name.endswith('.txt'):
+                dico2={}
                 paillasse_data = request.FILES['myfile'].read().decode('cp1252').split("\n")[:-1]
 
                 for line in paillasse_data:
@@ -98,8 +99,15 @@ def import_data(request):
                     ls[5] = ls[5].lower()
                     for cle2 in dico3.keys():
                         if cle2 in ls[5]:
-                            tmp.extend((ls[1], dico3[cle2]))
-                            dico1.append(tmp)
+                            if ls[1] not in dico2:
+                                dico2[ls[1]]= [dico3[cle2]]
+                                tmp.extend((ls[1], dico3[cle2]))
+                                dico1.append(tmp)
+                            else:
+                                if dico3[cle2] not in dico2[ls[1]]:
+                                    dico2[ls[1]] += [dico3[cle2]]
+                                    tmp.extend((ls[1], dico3[cle2]))
+                                    dico1.append(tmp)
                             if dico3[cle2] not in container_type:
                                 container_type.append(dico3[cle2])
 
@@ -624,41 +632,79 @@ def fix_etalonnage(request,session_id):
 
 
 def gestion_admin(request):
-    profil=list(Profil.objects.all())
-    return render(request, 'myapp/gestion_admin.html', {'profil': profil})
+    if request.user.is_superuser:
+        profil=list(Profil.objects.all())
+        return render(request, 'myapp/gestion_admin.html', {'profil': profil})
+    else:
+        return redirect(connexion)
 
 def feuille_calcul_admin(request,id_feuille_calcul):
-    array_concentration=[]
-    array_absorbance=[]
-    feuille_calcul=Feuille_calcul.objects.filter(id=id_feuille_calcul)
-    analyse=Analyse.objects.filter(feuille_calcul=feuille_calcul[0])
-    nb_echantillon= len(analyse)
-    parametre_interne=list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
-    index_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
-    parametre_interne = Trie(parametre_interne, index_param_interne)
-    analyseFormset= modelformset_factory(Analyse,form=AnalyseForm,fields=parametre_interne,max_num=nb_echantillon,min_num=nb_echantillon)
-    formset= analyseFormset(queryset=Analyse.objects.filter(feuille_calcul=feuille_calcul[0]))
-    choix= feuille_calcul[0].type_analyse.nom
-    if choix in ["SIL 815","sabm","SIL 650","SIL-BC"]:
-        parametre_etalonnage_nom = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True))
-        if parametre_etalonnage_nom[0] == "absorbance":
-            k = parametre_etalonnage_nom[0]
-            parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
-            parametre_etalonnage_nom[1] = k
-        les_etalonnages = Etalonnage.objects.filter(profil=feuille_calcul[0].profil,
-                                                    type_analyse=feuille_calcul[0].type_analyse,
-                                                    date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(
-            *parametre_etalonnage_nom)[::-1]
-        for etalonnage in les_etalonnages:
-            array_concentration.append(float(etalonnage[0]))
-            array_absorbance.append(float(etalonnage[1]))
+    if request.user.is_superuser:
+        array_concentration=[]
+        array_absorbance=[]
+        feuille_calcul=Feuille_calcul.objects.filter(id=id_feuille_calcul)
+        analyse=Analyse.objects.filter(feuille_calcul=feuille_calcul[0])
+        nb_echantillon= len(analyse)
+        parametre_interne=list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('nom', flat=True))
+        index_param_interne = list(feuille_calcul[0].type_analyse.parametre_interne.all().values_list('rang', flat=True))
+        parametre_interne = Trie(parametre_interne, index_param_interne)
+        analyseFormset= modelformset_factory(Analyse,form=AnalyseForm,fields=parametre_interne,max_num=nb_echantillon,min_num=nb_echantillon)
+        formset= analyseFormset(queryset=Analyse.objects.filter(feuille_calcul=feuille_calcul[0]))
+        choix= feuille_calcul[0].type_analyse.nom
+        if choix in ["SIL 815","sabm","SIL 650","SIL-BC"]:
+            nom_user= feuille_calcul[0].profil.user.username
+            path = os.path.abspath(os.path.dirname(__file__)) + "\static\myapp" + "\\" + nom_user
+            nom_fig = path + "\\" + feuille_calcul[0].type_analyse.nom + ".png"
+            static_name_fig = "myapp/" + nom_user + "/" + feuille_calcul[0].type_analyse.nom + ".png"
+            parametre_etalonnage_nom = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('nom',flat=True))
+            if parametre_etalonnage_nom[0] == "absorbance":
+                k = parametre_etalonnage_nom[0]
+                parametre_etalonnage_nom[0] = parametre_etalonnage_nom[1]
+                parametre_etalonnage_nom[1] = k
 
-    if request.method == 'POST':
-        formset = analyseFormset(request.POST, request.FILES)
-        if formset.is_valid():
-            for form in formset:
-                form.save()
-            return redirect(gestion_admin)
+            les_etalonnages = Etalonnage.objects.filter(profil=feuille_calcul[0].profil,
+                                                        type_analyse=feuille_calcul[0].type_analyse,
+                                                        date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(
+                *parametre_etalonnage_nom)[::-1]
+            for etalonnage in les_etalonnages:
+                array_concentration.append(float(etalonnage[0]))
+                array_absorbance.append(float(etalonnage[1]))
+
+            parametre_etalonnage = list(feuille_calcul[0].type_analyse.parametre_etalonnage.all().values_list('valeur', flat=True))
+            if parametre_etalonnage[0] == "Absorbance":
+                k = parametre_etalonnage[0]
+                parametre_etalonnage[0] = parametre_etalonnage[1]
+                parametre_etalonnage[1] = k
+
+            concentration_and_absorbance = create_figure(array_concentration, array_absorbance, parametre_etalonnage, path,
+                                                         nom_fig)
+        if request.method == 'POST':
+            formset = analyseFormset(request.POST, request.FILES)
+            if formset.is_valid():
+                for form in formset:
+                    form.save()
+                return redirect(gestion_admin)
+    else:
+        return redirect(connexion)
 
     return render(request, 'myapp/feuille_calcul_admin.html',locals())
 
+def test(request):
+    response = HttpResponse(content_type='application/ms-excel')
+    response['Content-Disposition'] = 'attachment; filename="test.xls"'
+
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet('Users')
+
+    # Sheet header, first row
+    row_num = 0
+    top_row = 0
+    bottom_row = 0
+    left_column = 1
+    right_column = 3
+    ws.write_merge(top_row, bottom_row, left_column, right_column, 'Long Cell')
+    style = xlwt.XFStyle()
+    style.alignment.wrap = 1
+    ws.write(2, 2, 'Hello\nWorld', style)
+    wb.save(response)
+    return response

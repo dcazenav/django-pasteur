@@ -41,6 +41,10 @@
                             </a>
                             <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
                                 <a class="dropdown-item" href="{% url 'myapp_index_feuille_calcul' username=user.username%}">Mes feuilles de calculs</a>
+                                {% if user.is_superuser %}
+                                    <a class="dropdown-item" href="{% url 'myapp_gestion'%}">Gérer les feuilles de calculs</a>
+                                    <a class="dropdown-item" href="{% url 'admin:index' %}">Administration du site </a>
+                                {% endif %}
                                 <a class="dropdown-item" href="{% url 'myapp_logout'%}">Se déconnecter</a>
                             </div>
                             </li>

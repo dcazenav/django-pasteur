@@ -137,11 +137,11 @@ def Export_xls_f(id_feuille_calcul):
     cpt=0
     num_col=2
 
-    ws.write(row_num,3,codification.intitule,gras_base)
-    ws.write(row_num,5,"Codification: "+codification.code,gras_base)
-    ws.write(row_num, 6, "Date de révision: " + str(codification.date_rev), gras_base)
-    ws.write(row_num, 7,codification.revision, gras_base)
-    row_num+=2
+    ws.write_merge(row_num,row_num+1,3,6,codification.intitule,gras_base)
+    ws.write_merge(row_num,row_num+1,8,9,"Codification: "+codification.code,gras_base)
+    ws.write_merge(row_num,row_num+1,11,13, "Date de révision: " + str(codification.date_rev.strftime("%d/%m/%Y")), gras_base)
+    ws.write_merge(row_num,row_num+1,15,15,codification.revision, gras_base)
+    row_num+=3
     for key,value in dico.items():
         if num_col > 6:
             num_col=2
@@ -187,7 +187,8 @@ def Export_xls_f(id_feuille_calcul):
         row_num += 1
         for col_num in range(len(row)):
             ws.write(row_num, col_num+2, row[col_num], font_style)
-
+    row_num += 3
+    ws.write_merge(row_num, row_num + 1,6,13,"INSTITUT PASTEUR DE LA GUADELOUPE-LABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT", gras_base)
     wb.save(response)
 
     return response
@@ -294,3 +295,4 @@ def Export_pdf_f(id_feuille_calcul):
     if pisaStatus.err:
         return HttpResponse('We had some errors <pre>' + html + '</pre>')
     return response
+
