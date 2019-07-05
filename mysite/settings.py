@@ -25,7 +25,7 @@ SECRET_KEY = '(a&@2(#v6f&)&w$*v^d^%@f2+%*1yuv)8)=h2$borzkqp^ujo8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if os.environ.get('ENV') == 'PRODUCTION':
-    DEBUG = True
+    DEBUG = False
 else:
     DEBUG = True
 
