@@ -697,23 +697,3 @@ def feuille_calcul_admin(request,id_feuille_calcul):
         return redirect(connexion)
 
     return render(request, 'myapp/feuille_calcul_admin.html',locals())
-
-def test(request):
-    response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="test.xls"'
-
-    wb = xlwt.Workbook(encoding='utf-8')
-    ws = wb.add_sheet('Users')
-
-    # Sheet header, first row
-    row_num = 0
-    top_row = 0
-    bottom_row = 0
-    left_column = 1
-    right_column = 3
-    ws.write_merge(top_row, bottom_row, left_column, right_column, 'Long Cell')
-    style = xlwt.XFStyle()
-    style.alignment.wrap = 1
-    ws.write(2, 2, 'Hello\nWorld', style)
-    wb.save(response)
-    return response
