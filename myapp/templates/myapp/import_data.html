@@ -17,6 +17,16 @@
         </form>
     </div>
 </div>
+<br/>
+{% if error1 %}
+ <div class="row">
+    <p class="text-danger"><strong>Le format du fichier est invalide.</strong></p>
+</div>
+{% elif error2 %}
+<div class="row">
+    <p class="text-danger"><strong>Pas d'analyse reconnu dans le fichier.</strong></p>
+</div>
+{% endif %}
 
 {% endblock %}
 

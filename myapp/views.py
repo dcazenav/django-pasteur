@@ -82,6 +82,8 @@ def import_data(request):
              'résidu sec à 180°c': 'residu sec',
              'silicates solubles (µmol/l sio2)': 'SIL-BC',
              'dbo5': 'dbo5'}
+    error1 = False
+    error2 = False
 
     if 'valider' in request.POST:
         session_id = request.POST['session']
@@ -145,13 +147,20 @@ def import_data(request):
                                         unique.append(row[index_echantillon])
                                     if dico3[cle] not in container_type:
                                         container_type.append(dico3[cle])
+            else:
+                error1= True
+                return render(request, 'myapp/import_data.html',locals())
 
-            request.session['type_analyses_%s' % session_id] = container_type
-            request.session['type_analyses_echantillon_%s' % session_id] = dico1
-            request.session['type_analyses_echantillon_save_%s' % session_id] = dico1
-            return redirect(choix_analyse,session_id=session_id)
+            if len(dico1) == 0:
+                error2 = True
+                return render(request, 'myapp/import_data.html', locals())
+            else:
+                request.session['type_analyses_%s' % session_id] = container_type
+                request.session['type_analyses_echantillon_%s' % session_id] = dico1
+                request.session['type_analyses_echantillon_save_%s' % session_id] = dico1
+                return redirect(choix_analyse,session_id=session_id)
 
-    return render(request, 'myapp/import_data.html')
+    return render(request, 'myapp/import_data.html',locals())
 
 
 def choix_analyse(request,session_id):
