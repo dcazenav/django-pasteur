@@ -8,7 +8,7 @@
 <br/>
 <div class="row">
     <div class="col-lg-5">
-    <form method="post" action="" autocomplete="off">
+    <form id="form1" method="post" action="" autocomplete="off">
            {% csrf_token %}
            {{ formset.management_form }}
            <table>
@@ -38,7 +38,7 @@
             </table>
         <br/>
             <button onclick= start_graph() type="button">Générer graphique</button>
-            <input name="valider" type="submit" value="Valider">
+            <input id="submit" name="valider" type="submit" value="Valider">
             <input id="verifEtalonnage" name="etalonnage" type="text" readonly="true">
 
         </form>
@@ -54,8 +54,17 @@
 <script src="{% static 'myapp/app.js' %}"></script>
 <script src="https://code.highcharts.com/highcharts.src.js"></script>
 <script src="https://code.highcharts.com/modules/exporting.js"></script>
-
 <script>
+$(document).on('submit','#form1',function(e)
+{
+    if(document.getElementById("verifEtalonnage").value == "")
+    {
+        e.preventDefault();
+        alert("LE BOUTON GÉNÉRER GRAPHIQUE N'A PAS ÉTÉ APPUYÉ");
+    }
+
+});
+
 function creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentration_absorbance,info)
 {
     Highcharts.chart('container', {
@@ -107,8 +116,7 @@ function creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentr
     }]
     });
 }
-  </script>
-<script>
+
 function start_graph()
 {
 var parametreEtalonnage= {{param_etalonnage|safe}};

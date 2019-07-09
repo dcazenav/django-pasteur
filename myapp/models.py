@@ -13,6 +13,13 @@ class Profil(models.Model):
     def __str__(self):
         return self.user.username
 
+class Table_correspondance(models.Model):
+    libelle = models.CharField(max_length=100)
+    type_analyse = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.libelle + "/" + self.type_analyse
+
 
 class Parametre_externe_analyse(models.Model):
     nom = models.CharField(max_length=60)

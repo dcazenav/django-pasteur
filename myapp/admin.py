@@ -12,6 +12,7 @@ admin.site.register(models.Echantillon)
 admin.site.register(models.Etalonnage)
 admin.site.register(models.Parametre_etalonnage)
 admin.site.register(models.Codification)
+admin.site.register(models.Table_correspondance)
 
 
 

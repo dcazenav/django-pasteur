@@ -68,20 +68,11 @@ def index_feuille_calcul(request,username):
 def import_data(request):
     container_type = []
     dico1 = []
-    dico3 = {'oxydab. kmno4 en mil. ac. à chaud': 'kmno4',
-             'taux de siccité (%)': 'siccite',
-             'matières volatiles sèches': 'matiere seche et mvs',
-             'matières en suspension (filtre what': 'MES',
-             'dem. chim. en oxygène': 'dco',
-             'azote kjeldahl (en n)': 'ntk',
-             'silicates solubles (en mg/l de sio2)': 'SIL',
-             'oxygène dissous (méthode iodométrique)': 'oxygene dissous',
-             'chlorophylle alpha': 'chlorophylle',
-             'agents de surface': 'sabm',
-             'détergents anioniques':'sabm',
-             'résidu sec à 180°c': 'residu sec',
-             'silicates solubles (µmol/l sio2)': 'SIL-BC',
-             'dbo5': 'dbo5'}
+    dico3 = {}
+    les_types=Table_correspondance.objects.all()
+    for tp in les_types:
+        dico3[tp.libelle]= tp.type_analyse
+
     error1 = False
     error2 = False
 
