@@ -19,5 +19,4 @@ urlpatterns=[
     path('etalonnage/<slug:session_id>/',views.fix_etalonnage,name='myapp_etalonnage'),
     path('export_xls/<int:id_feuille_calcul>',views.export_xls, name='myapp_export_xls'),
     path('export_pdf/<int:id_feuille_calcul>',views.export_pdf, name='myapp_export_pdf')
-
 ]

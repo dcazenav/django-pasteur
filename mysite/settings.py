@@ -35,6 +35,7 @@ ALLOWED_HOSTS = ['mybenchtop.herokuapp.com','127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'myapp.apps.MyappConfig',
     'django.contrib.admin',
     'crispy_forms',
     'django.contrib.auth',
@@ -42,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myapp.apps.MyappConfig',
 ]
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
@@ -146,3 +146,14 @@ if os.environ.get('ENV') == 'PRODUCTION':
     )
     db_from_env = dj_database_url.config(conn_max_age=500)
     DATABASES['default'].update(db_from_env)
+
+
+SEND_GRID_API_KEY = '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'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_HOST_USER = 'dregalad'
+EMAIL_HOST_PASSWORD = 'dregalad971'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'regalade.davy@gmail.com'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = 'Contact email receive'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
