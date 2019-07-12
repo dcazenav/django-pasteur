@@ -155,4 +155,5 @@ EMAIL_HOST_PASSWORD = 'institut_pasteur@971'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'regalade.raphael@gmail.com'
+ACCOUNT_EMAIL_SUBJECT_PREFIX = 'MyBenchtop | '
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
