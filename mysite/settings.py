@@ -148,12 +148,11 @@ if os.environ.get('ENV') == 'PRODUCTION':
     DATABASES['default'].update(db_from_env)
 
 
-SEND_GRID_API_KEY = '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'
+SEND_GRID_API_KEY = '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'
 EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = 'dregalad'
-EMAIL_HOST_PASSWORD = 'dregalad971Z<zY,*Ito67 siCtftG7Ef\r>'
+EMAIL_HOST_USER = 'pasteur971'
+EMAIL_HOST_PASSWORD = 'institut_pasteur@971'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-DEFAULT_FROM_EMAIL = 'regalade.davy@gmail.com'
-ACCOUNT_EMAIL_SUBJECT_PREFIX = 'Contact email receive'
+DEFAULT_FROM_EMAIL = 'regalade.raphael@gmail.com'
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
