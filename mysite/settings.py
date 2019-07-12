@@ -148,10 +148,10 @@ if os.environ.get('ENV') == 'PRODUCTION':
     DATABASES['default'].update(db_from_env)
 
 
-SEND_GRID_API_KEY = ''
+SEND_GRID_API_KEY = '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'
 EMAIL_HOST = 'smtp.sendgrid.net'
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = 'dregalad'
+EMAIL_HOST_PASSWORD = 'dregalad971Z<zY,*Ito67 siCtftG7Ef\r>'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = 'regalade.davy@gmail.com'
