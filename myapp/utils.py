@@ -119,9 +119,8 @@ def Export_xls_f(id_feuille_calcul):
             array_concentration.append(float(etalonnage[0]))
             array_absorbance.append(float(etalonnage[1]))
         concentration_and_absorbance=create_figure(array_concentration,array_absorbance,parametre_etalonnage,path,nom_fig)
-
     response = HttpResponse(content_type='application/ms-excel')
-    response['Content-Disposition'] = 'attachment; filename="'+filename +'.xls"'
+    response['Content-Disposition'] = 'attachment; filename="'+filename+'.xls"'
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Analyse')
     row_num = 0
@@ -272,7 +271,7 @@ def Export_pdf_f(id_feuille_calcul):
         concentration_and_absorbance = create_figure(array_concentration,array_absorbance,parametre_etalonnage,path,nom_fig)
 
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="' + filename + '.pdf"'
+    response['Content-Disposition'] = 'inline; filename="' + filename + '.pdf"'
     # find the template and render it.
     if feuille_calcul[0].type_analyse.nom in ["chlorophylle lorenzen","chlorophylle scor unesco","dbo sans dilution","dbo avec dilution","matiere seche et mvs"]:
         template="myapp/rendu_analyse_pdf_paysage.html"
@@ -289,7 +288,7 @@ def Export_pdf_f(id_feuille_calcul):
 
     # create a pdf
     pisaStatus = pisa.CreatePDF(
-        html, dest=response
+        html, dest=response,
     )
     # if error then show some funy view
     if pisaStatus.err:
