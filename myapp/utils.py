@@ -86,7 +86,7 @@ def Export_xls_f(id_feuille_calcul):
     param_interne_analyse= Trie(param_interne_analyse,index_param_interne_analyse1)
     liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
-    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)[::-1]
+    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
     for cpt in range(len(param_externe_analyse)):
         dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
         entete_data_externe.append(liste_param_externe[cpt])
@@ -114,7 +114,7 @@ def Export_xls_f(id_feuille_calcul):
             parametre_etalonnage_nom[1] = k
         les_etalonnages=Etalonnage.objects.filter(profil=profil,
                                                   type_analyse=feuille_calcul[0].type_analyse,
-                                                  date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(*parametre_etalonnage_nom)[::-1]
+                                                  date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(*parametre_etalonnage_nom)
         for etalonnage in les_etalonnages:
             array_concentration.append(float(etalonnage[0]))
             array_absorbance.append(float(etalonnage[1]))
@@ -222,7 +222,7 @@ def Export_pdf_f(id_feuille_calcul):
     param_interne_analyse=Trie(param_interne_analyse,index_param_interne_analyse1)
     liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
-    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)[::-1]
+    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
     for cpt in range(len(param_externe_analyse)):
         if liste_param_externe[cpt] in ["Date d'analyse","Heure de mise sous essai"]:
             extra_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
@@ -264,7 +264,7 @@ def Export_pdf_f(id_feuille_calcul):
         les_etalonnages = Etalonnage.objects.filter(profil=profil,
                                                     type_analyse=feuille_calcul[0].type_analyse,
                                                     date_etalonnage=feuille_calcul[0].date_etalonnage).values_list(
-            *parametre_etalonnage_nom)[::-1]
+            *parametre_etalonnage_nom)
         for etalonnage in les_etalonnages:
             array_concentration.append(float(etalonnage[0]))
             array_absorbance.append(float(etalonnage[1]))
