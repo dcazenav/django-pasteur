@@ -133,7 +133,7 @@ for(var i=0;i<6;i++)
     {
         var nom="id_form-"+i+"-"+parametreEtalonnage[j];
         data_form[i][j]=nom;
-        var val=parseFloat(document.getElementById(nom).value);
+        var val=parseFloat((document.getElementById(nom).value).replace(",","."));
         couple.push(val);
         if(j==0)
             concentrations.push(val);

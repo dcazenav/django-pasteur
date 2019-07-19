@@ -5,6 +5,7 @@ urlpatterns=[
     path('',views.connexion,name='myapp_accueil'),
     path('logout/',views.deconnexion,name='myapp_logout'),
     path('import/', views.import_data,name='myapp_import'),
+    path('test/', views.test, name='myapp_test'),
     path('index/feuille_calcul/<slug:username>/', views.index_feuille_calcul, name='myapp_index_feuille_calcul'),
     path('choix/<slug:session_id>/', views.choix_analyse, name='myapp_choix'),
     path('choix_specifique1/<slug:session_id>/', views.choix_specifique1, name='myapp_choix_specifique1'),

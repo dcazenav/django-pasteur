@@ -161,8 +161,8 @@ def Export_xls_f(id_feuille_calcul):
     cpt = 0
     for key,value in concentration_and_absorbance.items():
         if cpt==0:
-            ws.write(row_num, 2, parametre_etalonnage[0], gras)
-            ws.write(row_num, 3, parametre_etalonnage[1], gras)
+            ws.write(row_num, 2, parametre_etalonnage[0].replace(".",","), gras)
+            ws.write(row_num, 3, parametre_etalonnage[1].replace(".",","), gras)
             row_num+=1
         ws.write(row_num,2,key,gras)
         ws.write(row_num,3,value,font_style)
@@ -185,7 +185,7 @@ def Export_xls_f(id_feuille_calcul):
     for row in liste_analyses:
         row_num += 1
         for col_num in range(len(row)):
-            ws.write(row_num, col_num+2, row[col_num], font_style)
+            ws.write(row_num, col_num+2, row[col_num].replace(".",","), font_style)
     row_num += 3
     ws.write_merge(row_num, row_num + 1,6,13,"INSTITUT PASTEUR DE LA GUADELOUPE-LABORATOIRE D'HYGYENE ET DE L'ENVIRONNEMENT", gras_base)
     wb.save(response)

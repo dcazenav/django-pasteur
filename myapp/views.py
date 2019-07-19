@@ -255,6 +255,10 @@ def choix_specifique2(request,session_id):
 
         return render(request,'myapp/choix_specifique2.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
 
+def test(request):
+    type_analyse=Type_analyse.objects.filter(nom="kmno4")
+    last_feuille = Feuille_calcul.objects.filter(type_analyse=type_analyse[0])
+    return render(request,"myapp/test.html",locals())
 
 def externe_data_feuille_calcul(request,session_id):
     if not request.user.is_authenticated:
@@ -281,7 +285,7 @@ def externe_data_feuille_calcul(request,session_id):
                                                )
         last_date_etalonnage=""
         if choix in ['sabm', 'SIL-BC', 'SIL 650', 'SIL 815']:
-            last_feuille=Feuille_calcul.objects.filter(profil=profil[0],type_analyse=type_analyse[0])
+            last_feuille=Feuille_calcul.objects.filter(profil=profil[0],type_analyse=type_analyse[0]).order_by("-date_etalonnage")
             if last_feuille.exists():
                 last_date_etalonnage=last_feuille[0].date_etalonnage
         if request.method == "POST":
@@ -349,8 +353,8 @@ def feuille_calcul_data(request,session_id):
         elif choix == "MES" :
             for i in range(len(num_echantillon)):
                 if i == 0:
-                    num_echantillon2.append("CTRL")
                     num_echantillon2.append("BLANC")
+                    num_echantillon2.append("CTRL")
                     Echantillon.objects.get_or_create(numero="CTRL")
                     Echantillon.objects.get_or_create(numero="BLANC")
                     nb_echantillon += 2
@@ -505,13 +509,14 @@ def ajax_echantillon_add(request,session_id):
             echantillon_and_type =request.session['type_analyses_echantillon_%s' % session_id]
             localisation=request.session['localisation_%s' % session_id]
             request.session["change_%s" % session_id] = "Faux"
-            if localisation[pos] != -1:
-                if pos !=300:
-                    echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
-                else:
+            if numero != "":
+                if pos == 300:
                     echantillon_and_type.append([numero, choix])
+                    request.session["change_%s" % session_id]="Vrai"
+                elif localisation[pos] != -1:
+                    echantillon_and_type.insert(localisation[pos]+1,[numero,choix])
+                    request.session["change_%s" % session_id]="Vrai"
 
-                request.session["change_%s" % session_id]="Vrai"
             request.session['type_analyses_echantillon_%s' % session_id]= echantillon_and_type
             return HttpResponse('')
 

@@ -200,7 +200,7 @@ function before_load()
                 if(tmp[1]!="")
                    {
                         case_full.push("id_"+tmp[0]);
-                        localStorage.setItem("id_"+tmp[0], tmp[1]);
+                        localStorage.setItem("id_"+tmp[0], tmp[1].replace("%2C",","));
 
                    }
             }
@@ -231,14 +231,14 @@ function after_load()
                     var nb=i+1;
                     element=element.replace(/-.*-/, '-'+nb+'-');
                     if(regex.test(valeur)!=true )
-                        document.getElementById(element).value = parseFloat(valeur);
+                        document.getElementById(element).value = valeur;
                     else
                         document.getElementById(element).value = valeur.replace("%20"," ");
                 }
                 else
                 {
                     if(regex.test(valeur)!=true )
-                        document.getElementById(element).value = parseFloat(valeur);
+                        document.getElementById(element).value = valeur;
                     else
                         document.getElementById(element).value = valeur.replace("%20"," ");
                 }
@@ -253,14 +253,14 @@ function after_load()
                     var nb=i-1;
                     element=element.replace(/-.*-/, '-'+nb+'-');
                     if(regex.test(valeur)!=true )
-                        document.getElementById(element).value = parseFloat(valeur);
+                        document.getElementById(element).value = valeur;
                     else
                         document.getElementById(element).value = valeur.replace("%20"," ");
                 }
                 else if(i <index)
                 {
                     if(regex.test(valeur)!=true )
-                        document.getElementById(element).value = parseFloat(valeur);
+                        document.getElementById(element).value = valeur;
                     else
                         document.getElementById(element).value = valeur.replace("%20"," ");
 
@@ -270,7 +270,7 @@ function after_load()
             else
             {
                 if(regex.test(valeur)!=true )
-                    document.getElementById(element).value = parseFloat(valeur);
+                    document.getElementById(element).value = valeur;
                 else
                     document.getElementById(element).value = valeur.replace("%20"," ");
             }
