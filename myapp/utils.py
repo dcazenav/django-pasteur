@@ -86,7 +86,7 @@ def Export_xls_f(id_feuille_calcul):
     param_interne_analyse= Trie(param_interne_analyse,index_param_interne_analyse1)
     liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
-    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse).order_by('id')
     for cpt in range(len(param_externe_analyse)):
         dico[param_externe_analyse[cpt]] = feuille_calcul_trie[cpt]
         entete_data_externe.append(liste_param_externe[cpt])
@@ -222,7 +222,7 @@ def Export_pdf_f(id_feuille_calcul):
     param_interne_analyse=Trie(param_interne_analyse,index_param_interne_analyse1)
     liste_param_interne = Trie(liste_param_interne,index_param_interne_analyse2)
     # l'opérateur * permet à la fonction values_list d'interpréter un array
-    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse)
+    liste_analyses = Analyse.objects.filter(feuille_calcul=feuille_calcul[0]).values_list(*param_interne_analyse).order_by('id')
     for cpt in range(len(param_externe_analyse)):
         if liste_param_externe[cpt] in ["Date d'analyse","Heure de mise sous essai"]:
             extra_data_extern_pdf.append([liste_param_externe[cpt], feuille_calcul_trie[cpt]])
