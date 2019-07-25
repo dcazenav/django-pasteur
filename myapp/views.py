@@ -62,6 +62,22 @@ def index_feuille_calcul(request,username):
     user=User.objects.filter(username=username)
     profil=Profil.objects.filter(user=user[0])
     feuille_calcul = list(Feuille_calcul.objects.filter(profil=profil[0]).order_by('-date_creation'))
+    result_search=[]
+    exist= False
+    if 'Rechercher' in request.POST:
+        numero=request.POST['echantillon']
+        if numero !="":
+            numero=numero.replace(" ","")
+            for elmt in feuille_calcul:
+                analyses = Analyse.objects.filter(feuille_calcul=elmt,nEchantillon=numero)
+                if analyses.exists():
+                    if elmt not in result_search:
+                        exist = True
+                        result_search.append(elmt)
+            if exist:
+                return render(request,'myapp/search_echantillon.html',{'feuille_calcul':result_search})
+
+
     return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':feuille_calcul})
 
 
@@ -75,6 +91,13 @@ def import_data(request):
 
     error1 = False
     error2 = False
+    # Supression des feuilles de calcul vide
+    profil = Profil.objects.filter(user=request.user)
+    feuille_calcul = Feuille_calcul.objects.filter(profil=profil[0])
+    for elmt in feuille_calcul:
+        analyses = Analyse.objects.filter(feuille_calcul=elmt)
+        if not analyses.exists():
+            elmt.delete()
 
     if 'valider' in request.POST:
         session_id = request.POST['session']
@@ -288,6 +311,37 @@ def externe_data_feuille_calcul(request,session_id):
             last_feuille=Feuille_calcul.objects.filter(profil=profil[0],type_analyse=type_analyse[0]).order_by("-date_etalonnage")
             if last_feuille.exists():
                 last_date_etalonnage=last_feuille[0].date_etalonnage
+        if choix in ['dco','ntk','chlorophylle lorenzen']:
+            last_feuille = Feuille_calcul.objects.filter(profil=profil[0], type_analyse=type_analyse[0]).order_by(
+                "-date_analyse")
+            if choix =='dco':
+                if last_feuille.exists():
+                    form = feuille_calculForm(initial={'var3_dco':last_feuille[0].var3_dco,
+                                                                     'var4_dco':last_feuille[0].var4_dco,
+                                                                     'var8_dco':last_feuille[0].var8_dco,
+                                                                     'var9_dco':last_feuille[0].var9_dco})
+                else:
+                    form = feuille_calculForm()
+            elif choix =='ntk':
+                if last_feuille.exists():
+                    form = feuille_calculForm(initial={'var2_ntk':last_feuille[0].var2_ntk,
+                                                                     'var3_ntk':last_feuille[0].var3_ntk,
+                                                                     'var4_ntk':last_feuille[0].var4_ntk,
+                                                                     })
+                else:
+                    form = feuille_calculForm()
+
+            elif choix == 'chlorophylle lorenzen':
+                if last_feuille.exists():
+                    form = feuille_calculForm(initial={'var1_chlorophylle_lorenzen': last_feuille[0].var1_chlorophylle_lorenzen,
+                                                       'var2_chlorophylle_lorenzen': last_feuille[0].var2_chlorophylle_lorenzen,
+                                                       })
+                else:
+                    form = feuille_calculForm()
+
+        else:
+            form = feuille_calculForm()
+
         if request.method == "POST":
             form = feuille_calculForm(request.POST, request.FILES)
             if form.is_valid():
@@ -300,8 +354,7 @@ def externe_data_feuille_calcul(request,session_id):
                     return redirect(fix_etalonnage,session_id=session_id)
                 else:
                     return redirect(feuille_calcul_data,session_id=session_id)
-        else:
-            form=feuille_calculForm()
+
         return render(request, 'myapp/externe_data.html',{'form': form,"date_etalonnage":last_date_etalonnage})
 
 
@@ -597,23 +650,23 @@ def fix_etalonnage(request,session_id):
                                                     'c_micromol_l' : forms.TextInput(attrs={'readonly': True}),
                                                     'c_micro_gl': forms.TextInput(attrs={'readonly': True})
                                                 })
-        formset = etalonnageFormset(request.POST, request.FILES)
         #la requête dans le queryset permet de créer un ensemble d'étalonnage par profil et analyse
         if choix == "sabm":
-            etalonnageFormset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
+            formset = etalonnageFormset(initial=[{'c_lauryl': x} for x in ['0','0.1','0.4','1','2','4']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL 650":
-            etalonnageFormset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
+            formset = etalonnageFormset(initial=[{'c_mg': x} for x in ['0', '0.1', '0.5', '1', '2', '5']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL 815":
-            etalonnageFormset = etalonnageFormset(initial=[{'c_micro_gl': x} for x in ['0', '20', '50', '100', '500', '1000']],
+            formset = etalonnageFormset(initial=[{'c_micro_gl': x} for x in ['0', '20', '50', '100', '500', '1000']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
         elif choix == "SIL-BC":
-            etalonnageFormset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
+            formset = etalonnageFormset(initial=[{'c_micromol_l': x} for x in ['0', '0.5', '1', '5', '10', '20']],
                                                   queryset=Etalonnage.objects.filter(profil=profil[0],type_analyse=type_analyse[0],date_etalonnage=feuille_calcul[0].date_etalonnage))
 
 
         if request.method == 'POST':
+            formset = etalonnageFormset(request.POST, request.FILES)
             if formset.is_valid():
                 feuille_calcul = feuille_calcul.update(etalonnage=request.POST['etalonnage'])
                 for form in formset:
@@ -633,7 +686,7 @@ def fix_etalonnage(request,session_id):
                     etalonnage.save()
                 return redirect(feuille_calcul_data,session_id=session_id)
 
-        return render(request,'myapp/fix_etalonnage.html',{'formset':etalonnageFormset,'param_etalonnage':param_etalonnage_js})
+        return render(request,'myapp/fix_etalonnage.html',{'formset':formset,'param_etalonnage':param_etalonnage_js})
 
 
 def gestion_admin(request):
@@ -693,3 +746,49 @@ def feuille_calcul_admin(request,id_feuille_calcul):
         return redirect(connexion)
 
     return render(request, 'myapp/feuille_calcul_admin.html',locals())
+
+
+def externe_data_feuille_calcul_admin(request,id_feuille_calcul):
+    error= False
+    if request.user.is_superuser:
+        instance=Feuille_calcul.objects.get(pk=id_feuille_calcul)
+        param_externe_analyse= list(instance.type_analyse.parametre_externe.all().values_list('nom', flat=True))
+        if instance.type_analyse.nom =='dco':
+            for i in range(len(param_externe_analyse)):
+                if param_externe_analyse[i] == "var5_dco":
+                    k=param_externe_analyse[i]
+                    param_externe_analyse[i]=param_externe_analyse[0]
+                    param_externe_analyse[0]=k
+                if param_externe_analyse[i] == "var7_dco":
+                    k = param_externe_analyse[i]
+                    param_externe_analyse[i] = param_externe_analyse[1]
+                    param_externe_analyse[1] = k
+
+        feuilleFormset = modelformset_factory(Feuille_calcul,
+                                                fields=param_externe_analyse,
+                                                max_num=1,
+                                                min_num=1,
+                                                widgets=
+                                               {
+                                                'var1_oxygene_dissous':forms.TextInput(attrs={'id':'id_ox_1'}),
+                                                'var2_oxygene_dissous':forms.TextInput(attrs={'id':'id_ox_2','readonly': True}),
+                                                'var5_dco':forms.TextInput(attrs={'id':'id_dco_1'}),
+                                                'var6_dco':forms.TextInput(attrs={'id':'id_dco_2','readonly': True}),
+                                                'var7_dco': forms.TextInput(attrs={'id': 'id_dco_3'}),
+                                                'var10_dco': forms.TextInput(attrs={'id': 'id_dco_4', 'readonly': True}),
+                                                'etalonnage':  forms.TextInput(attrs={'readonly': True})
+                                                })
+        formset=feuilleFormset(queryset=Feuille_calcul.objects.filter(id=id_feuille_calcul))
+        if request.method == 'POST':
+            formset = feuilleFormset(request.POST, request.FILES)
+            if formset.is_valid():
+                for form in formset:
+                    form.save()
+                return redirect(feuille_calcul_admin,id_feuille_calcul=id_feuille_calcul)
+            else:
+                error=True
+                return render(request, 'myapp/externe_data_admin.html', locals())
+
+        return render(request,'myapp/externe_data_admin.html',locals())
+    else:
+        return redirect(connexion)

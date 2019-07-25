@@ -11,6 +11,7 @@ urlpatterns=[
     path('choix_specifique1/<slug:session_id>/', views.choix_specifique1, name='myapp_choix_specifique1'),
     path('choix_specifique2/<slug:session_id>/', views.choix_specifique2, name='myapp_choix_specifique2'),
     path('externe_data/<slug:session_id>/', views.externe_data_feuille_calcul, name='myapp_externe_data'),
+    path('externe_data_admin/<int:id_feuille_calcul>/', views.externe_data_feuille_calcul_admin, name='myapp_externe_data_admin'),
     path('feuille_calcul/<slug:session_id>/', views.feuille_calcul_data, name='myapp_calcul'),
     path('feuille_calcul_admin/<int:id_feuille_calcul>/', views.feuille_calcul_admin, name='myapp_feuille_admin'),
     path('export/<int:id_feuille_calcul>/<slug:session_id>/', views.export_analyse, name='export_analyse'),

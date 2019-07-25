@@ -10,25 +10,33 @@
 <h1> Renseignez les données suivantes </h1>
 </div>
 <br/>
-{% if date_etalonnage != "" %}
-La dernière date d'étalonnage est: {{date_etalonnage}}
-<br/>
-<br/>
-{% endif %}
-
 <div class="row">
 <div class="col-lg-6">
     <form  autocomplete="off" action="" method="post">
         {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form in formset.forms %}
         <div class="form-row">
-            {%for field in form %}
-            <div class="form-group col-md-6 mb-0">
-                {{field|as_crispy_field}}
-            </div>
+            {% for field in form.visible_fields %}
+                <div class="form-group col-md-6 mb-0">
+                {% if forloop.first %}
+                    {% for hidden in form.hidden_fields %}
+                    {{ hidden }}
+                    {% endfor %}
+                {% endif %}
+                {{ field.errors.as_ul }}
+                 {{ field | as_crispy_field}}
+                </div>
             {% endfor %}
         </div>
-        <input type="submit" name="valider" class="btn btn-primary"/>
+        {% endfor %}
+        <input id="submit" name="valider" type="submit" value="Valider">
     </form>
+{%if error %}
+    <div class="row">
+            <p class="offset-md-2"><strong>Le formulaire est invalide.</strong></p>
+            </div>
+{% endif %}
 </div>
 </div>
 

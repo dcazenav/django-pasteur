@@ -163,6 +163,8 @@ else
     info = info + parseFloat(lr.b).toFixed(3)+"<br/>R²= "+parseFloat(Math.pow(cor,2)).toFixed(4);
 creation_graph(x_min,x_max,concentrations,debut_lr,fin_lr,list_concentration_absorbance,info);
 }
+
+window.onbeforeunload= start_graph;
 </script>
 
 {% endblock %}

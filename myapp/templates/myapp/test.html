@@ -5,5 +5,20 @@
     <title>Title</title>
 </head>
 <body>
-{{last_feuille.0.id}}</body>
+<form  autocomplete="off" action="" method="post">
+        {% csrf_token %}
+        <div class="form-row">
+            {%for field in form %}
+            {% if field.name in param_externe_analyse %}
+                {{field.name}}
+            <br/>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <input type="submit" name="valider" class="btn btn-primary"/>
+</form>
+<br/>
+<br/>
+{{param_externe_analyse}}
+</body>
 </html>

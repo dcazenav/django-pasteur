@@ -746,185 +746,110 @@ for(var i=0;i<nb_echantillon;i++)
 switch(type)
 {
     case "siccite":
-        $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][4]).value;
-
+        $("#"+data_form[0][4]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][4]).val(valeur);
+                $("#"+data_form[i][4]).val(document.getElementById(data_form[0][4]).value);
             }
-
         });
 
         break;
 
     case "matiere seche et mvs":
-        $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][4]).value;
-
+        $("#"+data_form[0][4]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][4]).val(valeur);
+                $("#"+data_form[i][4]).val(document.getElementById(data_form[0][4]).value);
             }
-
         });
         break;
 
     case "kmno4":
-        $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][0]).value;
-
+        $("#"+data_form[0][0]+","+"#"+data_form[0][2]+","+"#"+data_form[0][3]).on("input",function()
+        {
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][0]).val(valeur);
+                $("#"+data_form[i][0]).val(document.getElementById(data_form[0][0]).value);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
+                $("#"+data_form[i][3]).val(document.getElementById(data_form[0][3]).value);
             }
-
         });
-
-        $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][2]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][2]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][3]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][3]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][3]).val(valeur);
-            }
-
-        });
-
         break;
+
     case "dco":
-        $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][1]).value;
-
+        $("#"+data_form[0][1]+","+"#"+data_form[0][2]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][1]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][2]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][2]).val(valeur);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
             }
 
         });
         break;
+
     case "ntk":
-        $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][0]).value;
-
+        $("#"+data_form[0][0]+","+"#"+data_form[0][1]+","+"#"+data_form[0][3]+","+"#"+data_form[0][4]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][0]).val(valeur);
-            }
-
-        });
-
-        $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][1]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][3]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][3]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][3]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][4]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][4]).val(valeur);
+                $("#"+data_form[i][0]).val(document.getElementById(data_form[0][0]).value);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][3]).val(document.getElementById(data_form[0][3]).value);
+                $("#"+data_form[i][4]).val(document.getElementById(data_form[0][4]).value);
             }
 
         });
         break;
 
     case "SIL-BC":
-        $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][1]).value;
-
+        $("#"+data_form[0][1]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][1]).val(valeur);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
             }
-
         });
         break;
 
     case "residu sec":
-         $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][2]).value;
-
+         $("#"+data_form[0][2]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][2]).val(valeur);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
             }
 
         });
         break;
 
     case "sabm":
-        $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][1]).value;
-
+        $("#"+data_form[0][1]+","+"#"+data_form[0][2]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][1]).val(valeur);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
+
             }
-
-        });
-
-        $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][2]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][2]).val(valeur);
-            }
-
         });
         break;
 
     case "chlorophylle scor unesco":
-        $("#"+data_form[0][0]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][0]).value;
-
+        $("#"+data_form[0][0]+","+"#"+data_form[0][1]+","+"#"+data_form[0][2]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][0]).val(valeur);
-            }
+                $("#"+data_form[i][0]).val(document.getElementById(data_form[0][0]).value);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
 
+            }
         });
-        $("#"+data_form[0][2]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][2]).value;
+        break;
 
+    case "chlorophylle lorenzen":
+        $("#"+data_form[0][1]+","+"#"+data_form[0][2]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][2]).val(valeur);
-            }
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][2]).val(document.getElementById(data_form[0][2]).value);
 
+            }
         });
         break;
 
@@ -938,7 +863,7 @@ switch(type)
         }
        $.each(array1, function (index, value)
        {
-            $("#"+array1[index]).on("focusout",function()
+            $("#"+array1[index]).on("input",function()
             {
                 var valeur= document.getElementById(array1[index]).value;
                 if (valeur !="")
@@ -951,7 +876,7 @@ switch(type)
         break;
 
     case "SIL 650":
-        $("#"+data_form[0][1]).on("focusout",function(){
+        $("#"+data_form[0][1]).on("input",function(){
             var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
 
             for(var i=1;i<nb_echantillon;i++)
@@ -963,7 +888,7 @@ switch(type)
         break;
 
     case "SIL 815":
-        $("#"+data_form[0][1]).on("focusout",function(){
+        $("#"+data_form[0][1]).on("input",function(){
             var valeur=parseFloat(document.getElementById(data_form[0][1]).value);
 
             for(var i=1;i<nb_echantillon;i++)
@@ -975,29 +900,12 @@ switch(type)
         break;
 
     case "dbo avec dilution":
-        $("#"+data_form[0][1]).on("focusout",function(){
-            var valeur= document.getElementById(data_form[0][1]).value;
+        $("#"+data_form[0][1]+","+"#"+data_form[0][3]+","+"#"+data_form[0][4]).on("input",function(){
             for(var i=1;i<nb_echantillon;i++)
             {
-                $("#"+data_form[i][1]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][3]).on("focusout",function(){
-            var valeur=document.getElementById(data_form[0][3]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][3]).val(valeur);
-            }
-
-        });
-        $("#"+data_form[0][4]).on("focusout",function(){
-            var valeur= document.getElementById(data_form[0][4]).value;
-
-            for(var i=1;i<nb_echantillon;i++)
-            {
-                $("#"+data_form[i][4]).val(valeur);
+                $("#"+data_form[i][1]).val(document.getElementById(data_form[0][1]).value);
+                $("#"+data_form[i][3]).val(document.getElementById(data_form[0][3]).value);
+                $("#"+data_form[i][4]).val(document.getElementById(data_form[0][4]).value);
             }
 
         });
