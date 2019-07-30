@@ -427,7 +427,7 @@ function myFunction()
             break;
         case "oxygene dissous":
             var c= "{{feuille_calcul.0.var2_oxygene_dissous}}";
-            c=  parseFloat(c.replace(",","."));
+            c=  parseFloat(c);
             for(var i=0;i<nb_echantillon;i++)
             {
                 var v1= parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
