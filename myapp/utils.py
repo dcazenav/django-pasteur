@@ -68,7 +68,7 @@ def Export_xls_f(id_feuille_calcul):
         *param_externe_analyse)
     feuille_calcul_trie = feuille_calcul_trie[0]
 
-    filename=profil.user.first_name+"_N°"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date().strftime("%d/%m/%Y"))+"_"+feuille_calcul[0].type_analyse.nom
+    filename=profil.user.first_name+"_N°"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date())+"_"+feuille_calcul[0].type_analyse.nom
     dico = {}
     entete_data_externe= []
     parametre_etalonnage=""
@@ -206,7 +206,7 @@ def Export_pdf_f(id_feuille_calcul):
     feuille_calcul_trie = feuille_calcul_trie[0]
     array_concentration=[]
     array_absorbance=[]
-    filename = profil.user.first_name+"_N°"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date().strftime("%d/%m/%Y"))+"_"+feuille_calcul[0].type_analyse.nom
+    filename = profil.user.first_name+"_N°"+str(feuille_calcul[0].id)+"_"+str(feuille_calcul[0].date_creation.date())+"_"+feuille_calcul[0].type_analyse.nom
     parametre_etalonnage = ""
     concentration_and_absorbance = {}
     nom_fig=""
