@@ -16,7 +16,10 @@ Entrez le numéro de l'échantillon:<br>
 <input name="Rechercher" class="btn btn-primary" type="submit" value="Rechercher">
 </div>
 </form>
-
+{% if show %}
+<br/>
+<h5><p class="text-danger"> Le numéro d'échantillon est introuvable.</p></h5>
+{% endif %}
 <table id="table" class="compact  row-border stripe hover">
 <thead>
 <tr>
@@ -25,7 +28,10 @@ Entrez le numéro de l'échantillon:<br>
     <th>Date création</th>
     <th>XLS</th>
     <th>PDF</th>
+    {% if user.is_superuser %}
     <th> </th>
+    {% endif %}
+
 </tr>
 </thead>
 <tbody>

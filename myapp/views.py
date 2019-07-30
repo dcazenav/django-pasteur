@@ -76,9 +76,10 @@ def index_feuille_calcul(request,username):
                         result_search.append(elmt)
             if exist:
                 return render(request,'myapp/search_echantillon.html',{'feuille_calcul':result_search})
+            else:
+                return render(request, 'myapp/index_feuille_calcul.html', {'feuille_calcul': feuille_calcul,'show':True})
 
-
-    return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':feuille_calcul})
+    return render(request,'myapp/index_feuille_calcul.html',{'feuille_calcul':feuille_calcul,'show':False})
 
 
 def import_data(request):
@@ -278,10 +279,6 @@ def choix_specifique2(request,session_id):
 
         return render(request,'myapp/choix_specifique2.html',{'choix_multiple':choix_multiple,'echantillon': echantillon_specifique})
 
-def test(request):
-    type_analyse=Type_analyse.objects.filter(nom="kmno4")
-    last_feuille = Feuille_calcul.objects.filter(type_analyse=type_analyse[0])
-    return render(request,"myapp/test.html",locals())
 
 def externe_data_feuille_calcul(request,session_id):
     if not request.user.is_authenticated:
