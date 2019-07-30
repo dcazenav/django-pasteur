@@ -52,7 +52,7 @@ $("#id_dco_1").on("input",function(){
     if(document.getElementById("id_dco_1").value!="")
     {
         var val=parseFloat((document.getElementById("id_dco_1").value).replace(",","."));
-        var result= 1.2/val;
+        var result= parseFloat(1.2/val).toFixed(3);
         $("#id_dco_2").val(result);
     }
     else
