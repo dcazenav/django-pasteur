@@ -244,8 +244,8 @@ function myFunction()
         case "dco" :
             var solution_c = "{{feuille_calcul.0.var6_dco}}";
             var essai_blanc= "{{feuille_calcul.0.var7_dco}}";
-            solution_c = parseFloat(solution_c);
-            essai_blanc = parseFloat(essai_blanc);
+            solution_c = parseFloat(solution_c.replace(",","."));
+            essai_blanc = parseFloat(essai_blanc.replace(",","."));
             for(var i=0;i<nb_echantillon;i++)
             {
                 var v2= parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
@@ -427,7 +427,7 @@ function myFunction()
             break;
         case "oxygene dissous":
             var c= "{{feuille_calcul.0.var2_oxygene_dissous}}";
-            c=  parseFloat(c);
+            c=  parseFloat(c.replace(",","."));
             for(var i=0;i<nb_echantillon;i++)
             {
                 var v1= parseFloat((document.getElementById(data_form[i][0]).value).replace(",","."));
