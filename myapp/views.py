@@ -676,7 +676,7 @@ def fix_etalonnage(request,session_id):
                         etalonnage.c_micro_gl = etalonnage.c_micro_gl.replace(',','.')
                     elif etalonnage.c_micromol_l != "":
                         etalonnage.c_micromol_l = etalonnage.c_micromol_l.replace(',','.')
-
+                    etalonnage.absorbance=etalonnage.absorbance.replace(',','.')
                     etalonnage.type_analyse = type_analyse[0]
                     etalonnage.profil = profil[0]
                     etalonnage.date_etalonnage= date_etalonnage
