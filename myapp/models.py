@@ -73,6 +73,9 @@ class Etalonnage(models.Model):
     c_micro_gl= models.CharField(max_length=100, verbose_name="concentration en µg/L",default="null")
     absorbance= models.CharField(max_length=100, verbose_name="absorbance")
 
+    def __str__(self):
+        return self.profil.user.username + "/"+self.type_analyse.nom
+
 
 class Feuille_calcul(models.Model):
     profil= models.ForeignKey(Profil,on_delete=models.CASCADE)
@@ -115,6 +118,8 @@ class Feuille_calcul(models.Model):
     var9_dco = models.CharField(max_length=100, verbose_name="Lot de sulfate d'argent")
     var10_dco = models.CharField(max_length=100, verbose_name="Blanc")
 
+    def __str__(self):
+        return "Feuille N°"+ str(self.id)
 
 
 
@@ -254,6 +259,8 @@ class Analyse(models.Model):
     var9_chlorophylle_lorenzen = models.CharField(max_length=60, verbose_name="A a 665")
     var10_chlorophylle_lorenzen = models.CharField(max_length=60, verbose_name="Ca en µg/L")
     var11_chlorophylle_lorenzen = models.CharField(max_length=60, verbose_name="Pa µg/L")
+    def __str__(self):
+        return "Feuille N°"+ str(self.feuille_calcul.id) + " / N°"+ str(self.nEchantillon)
 
 
 
