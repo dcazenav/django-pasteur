@@ -506,7 +506,13 @@ def feuille_calcul_data(request,session_id):
 
 
         #If you want to return a formset that doesn’t include any pre-existing instances of the model, you can specify an empty QuerySet thanks to queryset=Analyse.objects.none()
-        formset = analyseFormset(initial=[{'nEchantillon': x} for x in num_echantillon2],queryset=Analyse.objects.none())
+        initial_data=[{'nEchantillon': x} for x in num_echantillon2]
+        if choix == "dbo sans dilution":
+            initial_data[0]['var8_dbo_sans_dilution']=4
+        if choix == "siccite":
+            for elmt in initial_data:
+                elmt['var5_siccite']='0,01'
+        formset = analyseFormset(initial=initial_data,queryset=Analyse.objects.none())
 
         if 'analyse' in request.POST:
             formset = analyseFormset(request.POST, request.FILES)

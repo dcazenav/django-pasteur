@@ -100,7 +100,7 @@ class Feuille_calcul(models.Model):
     var1_dbo_avec_dilution = models.DateField(auto_now=False, verbose_name="Date de préparation de l'eau de dilution", default=datetime.datetime(1980, 1, 1, 1, 1,1))
     var2_dbo_avec_dilution = models.CharField(max_length=100, verbose_name="N° échant utilisé pour l'eau de dilution ensemencée")
     var3_dbo_avec_dilution = models.CharField(max_length=100, verbose_name="DCO de cette échantillon")
-    var1_dbo_sans_dilution = models.DateField(auto_now=False, verbose_name="Date de préparation de la solution de lavage", default=datetime.datetime(1980, 1, 1, 1, 1,1))
+    var1_dbo_sans_dilution = models.DateField(auto_now=False, verbose_name="Date de préparation de la solution de lavage",blank=True,null=True)
     var1_oxygene_dissous = models.CharField(max_length=100, verbose_name="Volume thiosulfate versé pour l'étalonnage mL")
     var2_oxygene_dissous = models.CharField(max_length=100, verbose_name="Concentration du thiosulfate de sodium mmol/L")
     var1_chlorophylle_scor_unesco = models.CharField(max_length=100, verbose_name="Lot d'acétone utilisé")
@@ -119,7 +119,7 @@ class Feuille_calcul(models.Model):
     var10_dco = models.CharField(max_length=100, verbose_name="Blanc")
 
     def __str__(self):
-        return "Feuille N°"+ str(self.id)
+        return "Feuille N°"+ str(self.id) + " / " + self.profil.user.first_name
 
 
 
@@ -205,7 +205,7 @@ class Analyse(models.Model):
     var7_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r expérimentale",blank=True)
     var8_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="r théorique",blank=True)
     var9_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="limite de controle",blank=True)
-    var10_dbo_sans_dilution  = models.CharField(max_length=60, verbose_name="controle",blank=True)
+    var10_dbo_sans_dilution = models.CharField(max_length=60, verbose_name="controle",blank=True)
     #sil 650
     var1_sil_650 = models.CharField(max_length=60, verbose_name="absorbance")
     var2_sil_650 = models.CharField(max_length=60, verbose_name="facteur de dilution")

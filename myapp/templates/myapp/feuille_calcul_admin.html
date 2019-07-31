@@ -391,11 +391,11 @@ function myFunction()
                 {
                     document.getElementById(data_form[i][5]).value= parseFloat(m2_o2t0 - m2_o2t5).toFixed(2);
                 }
-                var dbo1= parseFloat((document.getElementById(data_form[0][2]).value).replace(",","."));
-                var dbo2= parseFloat((document.getElementById(data_form[0][5]).value).replace(",","."));
+                var dbo1= parseFloat((document.getElementById(data_form[i][2]).value).replace(",","."));
+                var dbo2= parseFloat((document.getElementById(data_form[i][5]).value).replace(",","."));
                 var val=((dbo1-dbo2)*100)/(0.5*(dbo1+dbo2));
                 val=Math.abs(val);
-                document.getElementById(data_form[0][6]).value= parseFloat(val).toFixed(2);
+                document.getElementById(data_form[i][6]).value= parseFloat(val).toFixed(2);
                 document.getElementById(data_form[0][8]).value= parseFloat(3.2678*4).toFixed(2);
                 var r_experimental= parseFloat((document.getElementById(data_form[0][6]).value).replace(",","."));
                 var r_théorique= parseFloat((document.getElementById(data_form[0][7]).value).replace(",","."));
