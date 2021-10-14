@@ -6,7 +6,7 @@ future==0.17.1
 gunicorn==19.9.0
 html5lib==1.0.1
 kiwisolver==1.0.1
-matplotlib==3.0.3
+matplotlib
 numpy==1.16.2
 Pillow==5.4.1
 psycopg2==2.7.7
