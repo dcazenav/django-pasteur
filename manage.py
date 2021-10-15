@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#make sure the file is executable
 import os
 import sys
 
